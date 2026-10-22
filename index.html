@@ -2,6 +2,20 @@
 <!DOCTYPE html>
 <html lang="tg">
 <head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL =
+    "https://klxjebbgpuatwreupdts.supabase.co";
+
+  const SUPABASE_KEY =
+    "sb_publishable_IXrEmPBVU9esqWumh9Q2bw_u7NCiHOR";
+
+  const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#6d28d9">

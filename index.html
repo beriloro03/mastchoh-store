@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="tg">
 <head>
@@ -39,7 +40,11 @@ button.danger{background:#b42318}
 .adminitem{padding:12px;border:1px solid #e0e6e8;border-radius:9px;margin:8px 0}
 footer{text-align:center;padding:25px;color:#667085}
 @media(max-width:800px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:560px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.card{padding:9px}.card img{height:125px}header h1{font-size:21px}}
+@media(max-width:560px){
+.grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.card{padding:9px}.card img{height:125px}
+header h1{font-size:21px}
+}
 </style>
 </head>
 <body>
@@ -102,8 +107,11 @@ footer{text-align:center;padding:25px;color:#667085}
 <input id="productCategory" maxlength="80" placeholder="Электроника, либос...">
 <label for="productStock">Миқдор дар анбор</label>
 <input id="productStock" type="number" min="0" step="1" value="1">
-<label for="productImage">Суроғаи тасвир (URL)</label>
+<label for="productImageFile">📷 Интихоби сурат аз Галерея (то 5 MB)</label>
+<input id="productImageFile" type="file" accept="image/*">
+<label for="productImage">Ё суроғаи сурат (URL, ихтиёрӣ)</label>
 <input id="productImage" type="url" placeholder="https://...">
+<img id="imagePreview" class="hidden" alt="Пешнамоиши сурат" style="width:140px;height:140px;object-fit:contain;border-radius:10px;margin:5px 0 12px">
 <label for="productDescription">Тавсифи мол</label>
 <textarea id="productDescription" maxlength="2000"></textarea>
 <button type="submit">Сабт кардани мол</button>
@@ -124,9 +132,13 @@ footer{text-align:center;padding:25px;color:#667085}
 (() => {
 'use strict';
 
+// Танҳо калиди publishable-и Supabase-ро истифода баред.
 const SUPABASE_URL='https://klxjebbgpuatwreupdts.supabase.co';
 const SUPABASE_KEY='sb_publishable_IXrEmPBVU9esqWumh9Q2bw_u7NCiHOR';
+
+// Рақамро бо рамзи кишвар, бе + ва фосила санҷед.
 const WHATSAPP_NUMBER='79964468762';
+
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=id=>document.getElementById(id);
 let products=[],cart=[],category='Ҳама',user=null;
@@ -137,12 +149,14 @@ const money=n=>Number(n||0).toLocaleString('tg-TJ',{maximumFractionDigits:2});
 
 function escapeHTML(v){
  return String(v??'').replace(/[&<>"']/g,c=>({
-  '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
  }[c]));
 }
 
 function showMessage(id,text,error=false){
- $(id).innerHTML=text?`<div class="notice ${error?'error':''}">${escapeHTML(text)}</div>`:'';
+ $(id).innerHTML=text
+ ?`<div class="notice ${error?'error':''}">${escapeHTML(text)}</div>`
+ :'';
 }
 
 async function loadProducts(){
@@ -150,9 +164,8 @@ async function loadProducts(){
  $('catalogMessage').classList.remove('hidden');
 
  const {data,error}=await db.from('products')
-  .select('id,name,description,price,image_url,category,stock,is_active')
-  .eq('is_active',true)
-  .order('created_at',{ascending:false});
+ .select('id,name,description,price,image_url,category,stock,is_active')
+ .eq('is_active',true).order('created_at',{ascending:false});
 
  if(error){
   console.error(error);
@@ -160,7 +173,8 @@ async function loadProducts(){
   $('catalogMessage').textContent='Хатои пайвастшавӣ. Танзимоти Supabase-ро санҷед.';
  }else{
   products=data||[];
-  $('catalogMessage').textContent=products.length?'':'Ҳоло мол нест. Администратор метавонад мол илова кунад.';
+  $('catalogMessage').textContent=products.length
+  ?'':'Ҳоло мол нест. Администратор метавонад мол илова кунад.';
  }
 
  $('catalogMessage').classList.toggle('hidden',!error&&products.length>0);
@@ -174,7 +188,7 @@ function renderCategories(){
  if(!names.includes(category))category='Ҳама';
 
  $('categories').innerHTML=names.map(n=>
-  `<button type="button" class="${n===category?'active':''}" data-category="${escapeHTML(n)}">${escapeHTML(n)}</button>`
+ `<button type="button" class="${n===category?'active':''}" data-category="${escapeHTML(n)}">${escapeHTML(n)}</button>`
  ).join('');
 
  $('categories').querySelectorAll('[data-category]').forEach(b=>{
@@ -189,8 +203,8 @@ function renderCategories(){
 function renderProducts(){
  const q=$('search').value.trim().toLocaleLowerCase();
  const list=products.filter(p=>
-  (category==='Ҳама'||(p.category||'').trim()===category)&&
-  `${p.name} ${p.description||''} ${p.category||''}`.toLocaleLowerCase().includes(q)
+ (category==='Ҳама'||(p.category||'').trim()===category)&&
+ `${p.name} ${p.description||''} ${p.category||''}`.toLocaleLowerCase().includes(q)
  );
 
  if(!list.length){
@@ -199,18 +213,17 @@ function renderProducts(){
  }
 
  $('products').innerHTML=list.map(p=>`
-  <article class="card">
-   ${p.image_url
-    ?`<img src="${escapeHTML(p.image_url)}" alt="${escapeHTML(p.name)}" loading="lazy" onerror="this.style.display='none'">`
-    :'<div style="font-size:42px;text-align:center;padding:35px">📦</div>'}
-   <h3>${escapeHTML(p.name)}</h3>
-   <p class="muted">${escapeHTML(p.category||'')}</p>
-   <p>${escapeHTML(p.description||'')}</p>
-   <div class="price">${money(p.price)} сомонӣ</div>
-   <p class="muted">Дар анбор: ${Number(p.stock||0)}</p>
-   <button type="button" data-add="${Number(p.id)}" ${Number(p.stock)<=0?'disabled':''}>Ба сабад</button>
-  </article>
- `).join('');
+ <article class="card">
+ ${p.image_url
+ ?`<img src="${escapeHTML(p.image_url)}" alt="${escapeHTML(p.name)}" loading="lazy" onerror="this.style.display='none'">`
+ :'<div style="font-size:42px;text-align:center;padding:35px">📦</div>'}
+ <h3>${escapeHTML(p.name)}</h3>
+ <p class="muted">${escapeHTML(p.category||'')}</p>
+ <p>${escapeHTML(p.description||'')}</p>
+ <div class="price">${money(p.price)} сомонӣ</div>
+ <p class="muted">Дар анбор: ${Number(p.stock||0)}</p>
+ <button type="button" data-add="${Number(p.id)}" ${Number(p.stock)<=0?'disabled':''}>Ба сабад</button>
+ </article>`).join('');
 
  $('products').querySelectorAll('[data-add]').forEach(b=>{
   b.onclick=()=>addToCart(Number(b.dataset.add));
@@ -241,29 +254,27 @@ function renderCart(){
   $('cartItems').textContent='Сабад холӣ аст.';
  }else{
   $('cartItems').innerHTML=cart.map(x=>`
-   <div class="item">
-    <strong>${escapeHTML(x.name)}</strong>
-    <p>${money(x.price)} × ${x.qty} = ${money(x.price*x.qty)} сомонӣ</p>
-    <button type="button" class="secondary" data-minus="${x.id}">−</button>
-    <button type="button" class="secondary" data-plus="${x.id}">+</button>
-    <button type="button" class="danger" data-remove="${x.id}">Нест кардан</button>
-   </div>
-  `).join('');
+  <div class="item">
+  <strong>${escapeHTML(x.name)}</strong>
+  <p>${money(x.price)} × ${x.qty} = ${money(x.price*x.qty)} сомонӣ</p>
+  <button type="button" class="secondary" data-minus="${x.id}">−</button>
+  <button type="button" class="secondary" data-plus="${x.id}">+</button>
+  <button type="button" class="danger" data-remove="${x.id}">Нест кардан</button>
+  </div>`).join('');
  }
 
  $('total').textContent=money(cart.reduce((s,x)=>s+x.price*x.qty,0));
 
- $('cartItems').querySelectorAll('[data-minus]').forEach(b=>{
-  b.onclick=()=>changeQty(Number(b.dataset.minus),-1);
- });
- $('cartItems').querySelectorAll('[data-plus]').forEach(b=>{
-  b.onclick=()=>changeQty(Number(b.dataset.plus),1);
- });
- $('cartItems').querySelectorAll('[data-remove]').forEach(b=>{
-  b.onclick=()=>{
-   cart=cart.filter(x=>x.id!==Number(b.dataset.remove));
-   renderCart();
-  };
+ $('cartItems').querySelectorAll('[data-minus]').forEach(b=>
+ b.onclick=()=>changeQty(Number(b.dataset.minus),-1));
+
+ $('cartItems').querySelectorAll('[data-plus]').forEach(b=>
+ b.onclick=()=>changeQty(Number(b.dataset.plus),1));
+
+ $('cartItems').querySelectorAll('[data-remove]').forEach(b=>
+ b.onclick=()=>{
+  cart=cart.filter(x=>x.id!==Number(b.dataset.remove));
+  renderCart();
  });
 }
 
@@ -281,7 +292,7 @@ function changeQty(id,amount){
  renderCart();
 }
 
-// Фармоиш тавассути RPC-и серверӣ
+// Фиристодани фармоиш ба базаи Supabase
 $('orderForm').addEventListener('submit',async e=>{
  e.preventDefault();
  showMessage('orderMessage','');
@@ -300,16 +311,8 @@ $('orderForm').addEventListener('submit',async e=>{
   return;
  }
 
- const items=cart.map(x=>({
-  product_id:Number(x.id),
-  quantity:Number(x.qty)
- }));
-
- const whatsappItems=cart.map(x=>({
-  name:x.name,
-  price:Number(x.price),
-  quantity:Number(x.qty)
- }));
+ const items=cart.map(x=>({product_id:Number(x.id),quantity:Number(x.qty)}));
+ const whatsappItems=cart.map(x=>({name:x.name,price:Number(x.price),quantity:Number(x.qty)}));
 
  $('orderButton').disabled=true;
  $('orderButton').textContent='Сабт шуда истодааст...';
@@ -334,9 +337,7 @@ $('orderForm').addEventListener('submit',async e=>{
   }
 
   const total=Number(data.total);
-  const lines=whatsappItems.map(x=>
-   `• ${x.name} — ${x.quantity} × ${x.price} сомонӣ`
-  ).join('\n');
+  const lines=whatsappItems.map(x=>`• ${x.name} — ${x.quantity} × ${x.price} сомонӣ`).join('\n');
 
   const whatsappText=`Фармоиши нав аз MASTCHOH.STORE
 Рақами фармоиш: ${data.order_id}
@@ -347,17 +348,12 @@ $('orderForm').addEventListener('submit',async e=>{
 ${lines}
 Ҳамагӣ аз база: ${total} сомонӣ`;
 
-  $('orderMessage').innerHTML=
-   '<div class="notice">Фармоиши №'+escapeHTML(data.order_id)+
-   ' қабул шуд. Ҳамагӣ: '+escapeHTML(money(total))+
-   ' сомонӣ.</div><button type="button" id="sendWhatsApp">Ирсол ба WhatsApp</button>';
+  $('orderMessage').innerHTML='<div class="notice">Фармоиши №'+escapeHTML(data.order_id)+' қабул шуд. Ҳамагӣ: '+escapeHTML(money(total))+' сомонӣ.</div><button type="button" id="sendWhatsApp">Ирсол ба WhatsApp</button>';
 
-  $('sendWhatsApp').onclick=()=>{
-   window.open(
-    'https://wa.me/'+WHATSAPP_NUMBER+'?text='+encodeURIComponent(whatsappText),
-    '_blank','noopener'
-   );
-  };
+  $('sendWhatsApp').onclick=()=>window.open(
+   'https://wa.me/'+WHATSAPP_NUMBER+'?text='+encodeURIComponent(whatsappText),
+   '_blank','noopener'
+  );
 
   cart=[];
   renderCart();
@@ -382,9 +378,7 @@ async function updateAuth(){
  }
 
  const {data,error}=await db.from('store_admins')
-  .select('user_id')
-  .eq('user_id',user.id)
-  .maybeSingle();
+ .select('user_id').eq('user_id',user.id).maybeSingle();
 
  if(error||!data){
   await db.auth.signOut();
@@ -430,8 +424,7 @@ $('logout').onclick=async()=>{
 
 async function loadAdminProducts(){
  const {data,error}=await db.from('products')
-  .select('*')
-  .order('created_at',{ascending:false});
+ .select('*').order('created_at',{ascending:false});
 
  if(error){
   $('adminProducts').textContent='Молҳоро хонда натавонист.';
@@ -445,21 +438,18 @@ async function loadAdminProducts(){
  }
 
  $('adminProducts').innerHTML=data.map(p=>`
-  <div class="adminitem">
-   <strong>${escapeHTML(p.name)}</strong>
-   <p>${money(p.price)} сомонӣ · Миқдор: ${Number(p.stock||0)} · ${p.is_active?'Фаъол':'Ғайрифаъол'}</p>
-   <button type="button" class="secondary" data-edit="${p.id}">Таҳрир</button>
-   <button type="button" class="danger" data-delete="${p.id}">Нест кардан</button>
-  </div>
- `).join('');
+ <div class="adminitem">
+ <strong>${escapeHTML(p.name)}</strong>
+ <p>${money(p.price)} сомонӣ · Миқдор: ${Number(p.stock||0)} · ${p.is_active?'Фаъол':'Ғайрифаъол'}</p>
+ <button type="button" class="secondary" data-edit="${p.id}">Таҳрир</button>
+ <button type="button" class="danger" data-delete="${p.id}">Нест кардан</button>
+ </div>`).join('');
 
- $('adminProducts').querySelectorAll('[data-edit]').forEach(b=>{
-  b.onclick=()=>editProduct(data.find(p=>String(p.id)===b.dataset.edit));
- });
+ $('adminProducts').querySelectorAll('[data-edit]').forEach(b=>
+ b.onclick=()=>editProduct(data.find(p=>String(p.id)===b.dataset.edit)));
 
- $('adminProducts').querySelectorAll('[data-delete]').forEach(b=>{
-  b.onclick=()=>deleteProduct(Number(b.dataset.delete));
- });
+ $('adminProducts').querySelectorAll('[data-delete]').forEach(b=>
+ b.onclick=()=>deleteProduct(Number(b.dataset.delete)));
 }
 
 function editProduct(p){
@@ -471,17 +461,58 @@ function editProduct(p){
  $('productCategory').value=p.category||'';
  $('productStock').value=p.stock??0;
  $('productImage').value=p.image_url||'';
+ $('productImageFile').value='';
+ $('imagePreview').classList.add('hidden');
+ $('imagePreview').removeAttribute('src');
  $('productDescription').value=p.description||'';
  $('productForm').scrollIntoView({behavior:'smooth'});
 }
+
+// Интихоби сурат аз Галерея ва пешнамоиш
+$('productImageFile').addEventListener('change',()=>{
+ const file=$('productImageFile').files[0];
+ const preview=$('imagePreview');
+
+ if(!file){
+  preview.classList.add('hidden');
+  preview.removeAttribute('src');
+  return;
+ }
+
+ if(!file.type.startsWith('image/')){
+  alert('Лутфан файли суратро интихоб кун.');
+  $('productImageFile').value='';
+  preview.classList.add('hidden');
+  preview.removeAttribute('src');
+  return;
+ }
+
+ if(file.size>5*1024*1024){
+  alert('Ҳаҷми сурат бояд аз 5 MB зиёд набошад.');
+  $('productImageFile').value='';
+  preview.classList.add('hidden');
+  preview.removeAttribute('src');
+  return;
+ }
+
+ if(preview.dataset.objectUrl)URL.revokeObjectURL(preview.dataset.objectUrl);
+
+ const objectUrl=URL.createObjectURL(file);
+ preview.dataset.objectUrl=objectUrl;
+ preview.src=objectUrl;
+ preview.classList.remove('hidden');
+});
 
 $('clearForm').onclick=()=>{
  $('productForm').reset();
  $('productId').value='';
  $('productStock').value=1;
+ $('imagePreview').classList.add('hidden');
+ $('imagePreview').removeAttribute('src');
  showMessage('productMessage','');
 };
 
+// Илова ва таҳрири мол, бо бор кардани сурат ба Supabase Storage
 $('productForm').addEventListener('submit',async e=>{
  e.preventDefault();
  showMessage('productMessage','');
@@ -495,20 +526,59 @@ $('productForm').addEventListener('submit',async e=>{
   return;
  }
 
+ const file=$('productImageFile').files[0];
+ let imageUrl=$('productImage').value.trim()||null;
+
+ if(file){
+  if(!file.type.startsWith('image/')||file.size>5*1024*1024){
+   showMessage('productMessage','Сурат бояд бошад ва ҳаҷмаш аз 5 MB зиёд набошад.',true);
+   return;
+  }
+
+  showMessage('productMessage','Сурат бор шуда истодааст...');
+
+  const ext=(file.name.split('.').pop()||'jpg')
+  .toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+
+  const path=Date.now()+'-'+Math.random().toString(36).slice(2)+'.'+ext;
+
+  const {error:uploadError}=await db.storage.from('product-images')
+  .upload(path,file,{
+   cacheControl:'3600',
+   upsert:false,
+   contentType:file.type
+  });
+
+  if(uploadError){
+   console.error('Image upload error:',uploadError);
+   showMessage('productMessage','Сурат бор нашуд. Bucket ва иҷозатҳои Storage-ро санҷед.',true);
+   return;
+  }
+
+  const {data:urlData}=db.storage.from('product-images').getPublicUrl(path);
+  imageUrl=urlData?.publicUrl||null;
+
+  if(!imageUrl){
+   showMessage('productMessage','Суроғаи сурат гирифта нашуд.',true);
+   return;
+  }
+ }
+
  const row={
   name,
   price,
   stock,
   category:$('productCategory').value.trim()||null,
-  image_url:$('productImage').value.trim()||null,
+  image_url:imageUrl,
   description:$('productDescription').value.trim()||null,
   is_active:true
  };
 
  const id=$('productId').value;
+
  const result=id
-  ?await db.from('products').update(row).eq('id',Number(id))
-  :await db.from('products').insert(row);
+ ?await db.from('products').update(row).eq('id',Number(id))
+ :await db.from('products').insert(row);
 
  if(result.error){
   console.error(result.error);
@@ -519,6 +589,8 @@ $('productForm').addEventListener('submit',async e=>{
  $('productForm').reset();
  $('productId').value='';
  $('productStock').value=1;
+ $('imagePreview').classList.add('hidden');
+ $('imagePreview').removeAttribute('src');
  showMessage('productMessage','Мол сабт шуд.');
  await loadProducts();
  await loadAdminProducts();
@@ -543,9 +615,7 @@ async function deleteProduct(id){
 
 async function loadOrders(){
  const {data,error}=await db.from('orders')
-  .select('*')
-  .order('created_at',{ascending:false})
-  .limit(100);
+ .select('*').order('created_at',{ascending:false}).limit(100);
 
  if(error){
   $('adminOrders').textContent='Фармоишҳоро хонда натавонист.';
@@ -560,23 +630,23 @@ async function loadOrders(){
 
  $('adminOrders').innerHTML=data.map(o=>{
   const lines=Array.isArray(o.items)
-   ?o.items.map(x=>`${x.name} × ${x.quantity}`).join(', ')
-   :'';
+  ?o.items.map(x=>`${x.name} × ${x.quantity}`).join(', ')
+  :'';
 
   return `<div class="adminitem">
-   <strong>Фармоиш №${o.id}</strong>
-   <p>${escapeHTML(o.customer_name)} · ${escapeHTML(o.customer_phone)}</p>
-   <p>Суроға: ${escapeHTML(o.address)}</p>
-   <p>${escapeHTML(lines)}</p>
-   <p><strong>${money(o.total)} сомонӣ</strong></p>
-   <label for="status-${o.id}">Ҳолати фармоиш</label>
-   <select id="status-${o.id}" data-status="${o.id}">
-    <option value="new" ${o.status==='new'?'selected':''}>Нав</option>
-    <option value="confirmed" ${o.status==='confirmed'?'selected':''}>Тасдиқ шуд</option>
-    <option value="delivered" ${o.status==='delivered'?'selected':''}>Расонда шуд</option>
-    <option value="cancelled" ${o.status==='cancelled'?'selected':''}>Бекор шуд</option>
-   </select>
-   <button type="button" data-save-status="${o.id}">Сабти ҳолат</button>
+  <strong>Фармоиш №${o.id}</strong>
+  <p>${escapeHTML(o.customer_name)} · ${escapeHTML(o.customer_phone)}</p>
+  <p>Суроға: ${escapeHTML(o.address)}</p>
+  <p>${escapeHTML(lines)}</p>
+  <p><strong>${money(o.total)} сомонӣ</strong></p>
+  <label for="status-${o.id}">Ҳолати фармоиш</label>
+  <select id="status-${o.id}" data-status="${o.id}">
+  <option value="new" ${o.status==='new'?'selected':''}>Нав</option>
+  <option value="confirmed" ${o.status==='confirmed'?'selected':''}>Тасдиқ шуд</option>
+  <option value="delivered" ${o.status==='delivered'?'selected':''}>Расонда шуд</option>
+  <option value="cancelled" ${o.status==='cancelled'?'selected':''}>Бекор шуд</option>
+  </select>
+  <button type="button" data-save-status="${o.id}">Сабти ҳолат</button>
   </div>`;
  }).join('');
 
@@ -584,6 +654,7 @@ async function loadOrders(){
   b.onclick=async()=>{
    const id=Number(b.dataset.saveStatus);
    const status=$('status-'+id).value;
+
    const {error}=await db.from('orders').update({status}).eq('id',id);
 
    if(error){

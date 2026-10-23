@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="tg">
 <head>
@@ -11,7 +10,7 @@
 :root{font-family:Arial,sans-serif;color:#17212b;background:#f4f7f7}
 *{box-sizing:border-box}
 body{margin:0}
-header{background:#0f766e;color:white;padding:17px}
+header{background:#0f766e;color:#fff;padding:17px}
 header h1{margin:0;font-size:24px}
 header p{margin:7px 0 0}
 main{max-width:1100px;margin:auto;padding:16px}
@@ -123,545 +122,493 @@ footer{text-align:center;padding:25px;color:#667085}
 
 <script>
 (() => {
-"use strict";
+'use strict';
 
-// Танҳо publishable key истифода мешавад.
-// Service-role key-ро ҳеҷ гоҳ дар HTML ҷой надиҳед.
-const SUPABASE_URL = "https://klxjebbgpuatwreupdts.supabase.co";
-const SUPABASE_KEY = "sb_publishable_IXrEmPBVU9esqWumh9Q2bw_u7NCiHOR";
-const WHATSAPP_NUMBER = "79964468762";
+const SUPABASE_URL='https://klxjebbgpuatwreupdts.supabase.co';
+const SUPABASE_KEY='sb_publishable_IXrEmPBVU9esqWumh9Q2bw_u7NCiHOR';
+const WHATSAPP_NUMBER='79964468762';
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const $=id=>document.getElementById(id);
+let products=[],cart=[],category='Ҳама',user=null;
 
-const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const $ = id => document.getElementById(id);
+$('year').textContent=new Date().getFullYear();
 
-let products = [];
-let cart = [];
-let category = "Ҳама";
-let user = null;
+const money=n=>Number(n||0).toLocaleString('tg-TJ',{maximumFractionDigits:2});
 
-$("year").textContent = new Date().getFullYear();
-
-const money = n => Number(n || 0).toLocaleString("tg-TJ", {
-  maximumFractionDigits: 2
-});
-
-function escapeHTML(value) {
-  return String(value ?? "").replace(/[&<>"']/g, c => ({
-    "&":"&amp;",
-    "<":"&lt;",
-    ">":"&gt;",
-    '"':"&quot;",
-    "'":"&#39;"
-  }[c]));
+function escapeHTML(v){
+ return String(v??'').replace(/[&<>"']/g,c=>({
+  '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+ }[c]));
 }
 
-function showMessage(id, text, error = false) {
-  $(id).innerHTML = text
-    ? `<div class="notice ${error ? "error" : ""}">${escapeHTML(text)}</div>`
-    : "";
+function showMessage(id,text,error=false){
+ $(id).innerHTML=text?`<div class="notice ${error?'error':''}">${escapeHTML(text)}</div>`:'';
 }
 
-/* Каталоги молҳо */
-async function loadProducts() {
-  $("catalogMessage").textContent = "Каталог бор шуда истодааст...";
-  $("catalogMessage").classList.remove("hidden");
+async function loadProducts(){
+ $('catalogMessage').textContent='Каталог бор шуда истодааст...';
+ $('catalogMessage').classList.remove('hidden');
 
-  const {data, error} = await db
-    .from("products")
-    .select("id,name,description,price,image_url,category,stock,is_active")
-    .eq("is_active", true)
-    .order("created_at", {ascending: false});
+ const {data,error}=await db.from('products')
+  .select('id,name,description,price,image_url,category,stock,is_active')
+  .eq('is_active',true)
+  .order('created_at',{ascending:false});
 
-  if (error) {
-    console.error(error);
-    products = [];
-    $("catalogMessage").textContent =
-      "Хатои пайвастшавӣ. Танзимоти Supabase-ро санҷед.";
-  } else {
-    products = data || [];
-    $("catalogMessage").textContent = products.length
-      ? ""
-      : "Ҳоло мол нест. Администратор метавонад мол илова кунад.";
-  }
+ if(error){
+  console.error(error);
+  products=[];
+  $('catalogMessage').textContent='Хатои пайвастшавӣ. Танзимоти Supabase-ро санҷед.';
+ }else{
+  products=data||[];
+  $('catalogMessage').textContent=products.length?'':'Ҳоло мол нест. Администратор метавонад мол илова кунад.';
+ }
 
-  $("catalogMessage").classList.toggle(
-    "hidden", !error && products.length > 0
-  );
-
-  renderCategories();
-  renderProducts();
-  renderCart();
+ $('catalogMessage').classList.toggle('hidden',!error&&products.length>0);
+ renderCategories();
+ renderProducts();
+ renderCart();
 }
 
-function renderCategories() {
-  const names = ["Ҳама", ...new Set(
-    products.map(p => (p.category || "").trim()).filter(Boolean)
-  )];
+function renderCategories(){
+ const names=['Ҳама',...new Set(products.map(p=>(p.category||'').trim()).filter(Boolean))];
+ if(!names.includes(category))category='Ҳама';
 
-  if (!names.includes(category)) category = "Ҳама";
+ $('categories').innerHTML=names.map(n=>
+  `<button type="button" class="${n===category?'active':''}" data-category="${escapeHTML(n)}">${escapeHTML(n)}</button>`
+ ).join('');
 
-  $("categories").innerHTML = names.map(name =>
-    `<button type="button" class="${name === category ? "active" : ""}"
-      data-category="${escapeHTML(name)}">${escapeHTML(name)}</button>`
-  ).join("");
-
-  $("categories").querySelectorAll("[data-category]").forEach(button => {
-    button.onclick = () => {
-      category = button.dataset.category;
-      renderCategories();
-      renderProducts();
-    };
-  });
+ $('categories').querySelectorAll('[data-category]').forEach(b=>{
+  b.onclick=()=>{
+   category=b.dataset.category;
+   renderCategories();
+   renderProducts();
+  };
+ });
 }
 
-function renderProducts() {
-  const q = $("search").value.trim().toLocaleLowerCase();
+function renderProducts(){
+ const q=$('search').value.trim().toLocaleLowerCase();
+ const list=products.filter(p=>
+  (category==='Ҳама'||(p.category||'').trim()===category)&&
+  `${p.name} ${p.description||''} ${p.category||''}`.toLocaleLowerCase().includes(q)
+ );
 
-  const list = products.filter(p =>
-    (category === "Ҳама" || (p.category || "").trim() === category) &&
-    `${p.name} ${p.description || ""} ${p.category || ""}`
-      .toLocaleLowerCase().includes(q)
-  );
+ if(!list.length){
+  $('products').innerHTML='<div class="card">Мол ёфт нашуд.</div>';
+  return;
+ }
 
-  if (!list.length) {
-    $("products").innerHTML = '<div class="card">Мол ёфт нашуд.</div>';
-    return;
-  }
+ $('products').innerHTML=list.map(p=>`
+  <article class="card">
+   ${p.image_url
+    ?`<img src="${escapeHTML(p.image_url)}" alt="${escapeHTML(p.name)}" loading="lazy" onerror="this.style.display='none'">`
+    :'<div style="font-size:42px;text-align:center;padding:35px">📦</div>'}
+   <h3>${escapeHTML(p.name)}</h3>
+   <p class="muted">${escapeHTML(p.category||'')}</p>
+   <p>${escapeHTML(p.description||'')}</p>
+   <div class="price">${money(p.price)} сомонӣ</div>
+   <p class="muted">Дар анбор: ${Number(p.stock||0)}</p>
+   <button type="button" data-add="${Number(p.id)}" ${Number(p.stock)<=0?'disabled':''}>Ба сабад</button>
+  </article>
+ `).join('');
 
-  $("products").innerHTML = list.map(p => `
-    <article class="card">
-      ${p.image_url
-        ? `<img src="${escapeHTML(p.image_url)}" alt="${escapeHTML(p.name)}"
-             loading="lazy" onerror="this.style.display='none'">`
-        : '<div style="font-size:42px;text-align:center;padding:35px">📦</div>'}
-      <h3>${escapeHTML(p.name)}</h3>
-      <p class="muted">${escapeHTML(p.category || "")}</p>
-      <p>${escapeHTML(p.description || "")}</p>
-      <div class="price">${money(p.price)} сомонӣ</div>
-      <p class="muted">Дар анбор: ${Number(p.stock || 0)}</p>
-      <button type="button" data-add="${Number(p.id)}"
-        ${Number(p.stock) <= 0 ? "disabled" : ""}>Ба сабад</button>
-    </article>
-  `).join("");
-
-  $("products").querySelectorAll("[data-add]").forEach(button => {
-    button.onclick = () => addToCart(Number(button.dataset.add));
-  });
+ $('products').querySelectorAll('[data-add]').forEach(b=>{
+  b.onclick=()=>addToCart(Number(b.dataset.add));
+ });
 }
 
-$("search").addEventListener("input", renderProducts);
+$('search').addEventListener('input',renderProducts);
 
-function addToCart(id) {
-  const p = products.find(x => Number(x.id) === id);
-  if (!p || Number(p.stock) <= 0) return;
+function addToCart(id){
+ const p=products.find(x=>Number(x.id)===id);
+ if(!p||Number(p.stock)<=0)return;
 
-  const item = cart.find(x => x.id === id);
-
-  if (item) {
-    if (item.qty >= Number(p.stock)) {
-      alert("Дар анбор ин қадар мол нест.");
-      return;
-    }
-    item.qty++;
-  } else {
-    cart.push({
-      id: p.id,
-      name: p.name,
-      price: Number(p.price),
-      qty: 1,
-      stock: Number(p.stock)
-    });
+ const item=cart.find(x=>x.id===id);
+ if(item){
+  if(item.qty>=Number(p.stock)){
+   alert('Дар анбор ин қадар мол нест.');
+   return;
   }
-
-  renderCart();
+  item.qty++;
+ }else{
+  cart.push({id:p.id,name:p.name,price:Number(p.price),qty:1,stock:Number(p.stock)});
+ }
+ renderCart();
 }
 
-function renderCart() {
-  if (!cart.length) {
-    $("cartItems").textContent = "Сабад холӣ аст.";
-  } else {
-    $("cartItems").innerHTML = cart.map(x => `
-      <div class="item">
-        <strong>${escapeHTML(x.name)}</strong>
-        <p>${money(x.price)} × ${x.qty} = ${money(x.price * x.qty)} сомонӣ</p>
-        <button type="button" class="secondary" data-minus="${x.id}">−</button>
-        <button type="button" class="secondary" data-plus="${x.id}">+</button>
-        <button type="button" class="danger" data-remove="${x.id}">Нест кардан</button>
-      </div>
-    `).join("");
-  }
+function renderCart(){
+ if(!cart.length){
+  $('cartItems').textContent='Сабад холӣ аст.';
+ }else{
+  $('cartItems').innerHTML=cart.map(x=>`
+   <div class="item">
+    <strong>${escapeHTML(x.name)}</strong>
+    <p>${money(x.price)} × ${x.qty} = ${money(x.price*x.qty)} сомонӣ</p>
+    <button type="button" class="secondary" data-minus="${x.id}">−</button>
+    <button type="button" class="secondary" data-plus="${x.id}">+</button>
+    <button type="button" class="danger" data-remove="${x.id}">Нест кардан</button>
+   </div>
+  `).join('');
+ }
 
-  $("total").textContent = money(
-    cart.reduce((sum, x) => sum + x.price * x.qty, 0)
-  );
+ $('total').textContent=money(cart.reduce((s,x)=>s+x.price*x.qty,0));
 
-  $("cartItems").querySelectorAll("[data-minus]").forEach(button => {
-    button.onclick = () => changeQty(Number(button.dataset.minus), -1);
-  });
-
-  $("cartItems").querySelectorAll("[data-plus]").forEach(button => {
-    button.onclick = () => changeQty(Number(button.dataset.plus), 1);
-  });
-
-  $("cartItems").querySelectorAll("[data-remove]").forEach(button => {
-    button.onclick = () => {
-      cart = cart.filter(x => x.id !== Number(button.dataset.remove));
-      renderCart();
-    };
-  });
+ $('cartItems').querySelectorAll('[data-minus]').forEach(b=>{
+  b.onclick=()=>changeQty(Number(b.dataset.minus),-1);
+ });
+ $('cartItems').querySelectorAll('[data-plus]').forEach(b=>{
+  b.onclick=()=>changeQty(Number(b.dataset.plus),1);
+ });
+ $('cartItems').querySelectorAll('[data-remove]').forEach(b=>{
+  b.onclick=()=>{
+   cart=cart.filter(x=>x.id!==Number(b.dataset.remove));
+   renderCart();
+  };
+ });
 }
 
-function changeQty(id, amount) {
-  const item = cart.find(x => x.id === id);
-  if (!item) return;
+function changeQty(id,amount){
+ const x=cart.find(i=>i.id===id);
+ if(!x)return;
 
-  if (amount > 0 && item.qty >= item.stock) {
-    alert("Аз миқдори анбор зиёд интихоб карда намешавад.");
-    return;
-  }
+ if(amount>0&&x.qty>=x.stock){
+  alert('Аз миқдори анбор зиёд интихоб карда намешавад.');
+  return;
+ }
 
-  item.qty += amount;
-  if (item.qty <= 0) cart = cart.filter(x => x.id !== id);
-  renderCart();
+ x.qty+=amount;
+ if(x.qty<=0)cart=cart.filter(i=>i.id!==id);
+ renderCart();
 }
 
-/* Сабти фармоиш дар Supabase */
-$("orderForm").addEventListener("submit", async e => {
-  e.preventDefault();
-  showMessage("orderMessage", "");
+// Фармоиш тавассути RPC-и серверӣ
+$('orderForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+ showMessage('orderMessage','');
 
-  if (!cart.length) {
-    showMessage("orderMessage", "Сабад холӣ аст.", true);
-    return;
-  }
+ if(!cart.length){
+  showMessage('orderMessage','Сабад холӣ аст.',true);
+  return;
+ }
 
-  const name = $("customerName").value.trim();
-  const phone = $("customerPhone").value.trim();
-  const address = $("address").value.trim();
+ const name=$('customerName').value.trim();
+ const phone=$('customerPhone').value.trim();
+ const address=$('address').value.trim();
 
-  if (!name || !phone || !address) {
-    showMessage("orderMessage",
-      "Лутфан ном, телефон ва суроғаро пур кунед.", true);
-    return;
-  }
+ if(!name||!phone||!address){
+  showMessage('orderMessage','Лутфан ном, телефон ва суроғаро пур кунед.',true);
+  return;
+ }
 
-  const total = cart.reduce((sum, x) => sum + x.price * x.qty, 0);
-  const items = cart.map(x => ({
-    product_id: x.id,
-    name: x.name,
-    price: x.price,
-    quantity: x.qty
-  }));
+ const items=cart.map(x=>({
+  product_id:Number(x.id),
+  quantity:Number(x.qty)
+ }));
 
-  $("orderButton").disabled = true;
-  $("orderButton").textContent = "Сабт шуда истодааст...";
+ const whatsappItems=cart.map(x=>({
+  name:x.name,
+  price:Number(x.price),
+  quantity:Number(x.qty)
+ }));
 
-  try {
-    // Фармоиш ворид мешавад, аммо маълумоти фармоишҳо ба меҳмонон баргардонида намешавад.
-    const {error} = await db.from("orders").insert({
-      customer_name: name,
-      customer_phone: phone,
-      address: address,
-      items: items,
-      total: total,
-      status: "new"
-    });
+ $('orderButton').disabled=true;
+ $('orderButton').textContent='Сабт шуда истодааст...';
 
-    if (error) {
-      console.error("Order insert error:", error);
-      showMessage("orderMessage",
-        "Фармоиш сабт нашуд. Интернет ва иҷозатҳои Supabase-ро санҷед.",
-        true);
-      return;
-    }
-
-    const lines = items.map(x =>
-      `• ${x.name} — ${x.quantity} × ${x.price} сомонӣ`
-    ).join("\n");
-
-    const whatsappText =
-      `Фармоиши нав аз MASTCHOH.STORE\n` +
-      `Ном: ${name}\n` +
-      `Телефон: ${phone}\n` +
-      `Суроға: ${address}\n\n` +
-      `${lines}\nҲамагӣ: ${total} сомонӣ`;
-
-    $("orderMessage").innerHTML =
-      `<div class="notice">Фармоиши шумо қабул шуд. Мо бо шумо тамос мегирем.</div>
-       <button type="button" id="sendWhatsApp">Ирсол ба WhatsApp</button>`;
-
-    $("sendWhatsApp").onclick = () => {
-      const url = "https://wa.me/" + WHATSAPP_NUMBER +
-        "?text=" + encodeURIComponent(whatsappText);
-      window.open(url, "_blank", "noopener");
-    };
-
-    cart = [];
-    renderCart();
-    $("orderForm").reset();
-
-  } catch (err) {
-    console.error("Order error:", err);
-    showMessage("orderMessage",
-      "Хатои пайвастшавӣ. Интернетро санҷида, боз кӯшиш кунед.", true);
-  } finally {
-    $("orderButton").disabled = false;
-    $("orderButton").textContent = "Фиристодани фармоиш";
-  }
-});
-
-/* Воридшавии администратор */
-$("toggleLogin").onclick = () => {
-  $("loginPanel").classList.toggle("hidden");
-};
-
-async function updateAuth() {
-  if (!user) {
-    $("adminPanel").classList.add("hidden");
-    return;
-  }
-
-  const {data, error} = await db.from("store_admins")
-    .select("user_id")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (error || !data) {
-    await db.auth.signOut();
-    user = null;
-    $("adminPanel").classList.add("hidden");
-    $("loginPanel").classList.remove("hidden");
-    showMessage("loginMessage",
-      "Ин ҳисоби администратор нест. UID-ро дар store_admins санҷед.", true);
-    return;
-  }
-
-  $("loginPanel").classList.add("hidden");
-  $("adminPanel").classList.remove("hidden");
-  $("adminEmailLabel").textContent = user.email || "Администратор";
-  await loadAdminProducts();
-  await loadOrders();
-}
-
-$("loginForm").addEventListener("submit", async e => {
-  e.preventDefault();
-  showMessage("loginMessage", "");
-
-  const {data, error} = await db.auth.signInWithPassword({
-    email: $("adminEmail").value.trim(),
-    password: $("adminPassword").value
+ try{
+  const {data,error}=await db.rpc('place_order',{
+   p_customer_name:name,
+   p_customer_phone:phone,
+   p_address:address,
+   p_items:items
   });
 
-  if (error) {
-    console.error(error);
-    showMessage("loginMessage", "Ворид нашуд. Email ва паролро санҷед.", true);
-    return;
+  if(error){
+   console.error('Order RPC error:',error);
+   showMessage('orderMessage',error.message||'Фармоиш сабт нашуд. Танзимоти RPC-и Supabase-ро санҷед.',true);
+   return;
   }
 
-  user = data.user;
-  await updateAuth();
-});
-
-$("logout").onclick = async () => {
-  await db.auth.signOut();
-  user = null;
-  $("adminPanel").classList.add("hidden");
-  $("loginPanel").classList.remove("hidden");
-};
-
-/* Идоракунии молҳо */
-async function loadAdminProducts() {
-  const {data, error} = await db.from("products")
-    .select("*")
-    .order("created_at", {ascending: false});
-
-  if (error) {
-    $("adminProducts").textContent = "Молҳоро хонда натавонист.";
-    console.error(error);
-    return;
+  if(!data||data.success!==true){
+   showMessage('orderMessage','Фармоиш сабт нашуд. Лутфан боз кӯшиш кунед.',true);
+   return;
   }
 
-  if (!data || !data.length) {
-    $("adminProducts").textContent = "Ҳоло мол нест.";
-    return;
-  }
+  const total=Number(data.total);
+  const lines=whatsappItems.map(x=>
+   `• ${x.name} — ${x.quantity} × ${x.price} сомонӣ`
+  ).join('\n');
 
-  $("adminProducts").innerHTML = data.map(p => `
-    <div class="adminitem">
-      <strong>${escapeHTML(p.name)}</strong>
-      <p>${money(p.price)} сомонӣ · Миқдор: ${Number(p.stock || 0)}
-        · ${p.is_active ? "Фаъол" : "Ғайрифаъол"}</p>
-      <button type="button" class="secondary" data-edit="${p.id}">Таҳрир</button>
-      <button type="button" class="danger" data-delete="${p.id}">Нест кардан</button>
-    </div>
-  `).join("");
+  const whatsappText=`Фармоиши нав аз MASTCHOH.STORE
+Рақами фармоиш: ${data.order_id}
+Ном: ${name}
+Телефон: ${phone}
+Суроға: ${address}
 
-  $("adminProducts").querySelectorAll("[data-edit]").forEach(button => {
-    button.onclick = () => editProduct(
-      data.find(p => String(p.id) === button.dataset.edit)
-    );
-  });
+${lines}
+Ҳамагӣ аз база: ${total} сомонӣ`;
 
-  $("adminProducts").querySelectorAll("[data-delete]").forEach(button => {
-    button.onclick = () => deleteProduct(Number(button.dataset.delete));
-  });
-}
+  $('orderMessage').innerHTML=
+   '<div class="notice">Фармоиши №'+escapeHTML(data.order_id)+
+   ' қабул шуд. Ҳамагӣ: '+escapeHTML(money(total))+
+   ' сомонӣ.</div><button type="button" id="sendWhatsApp">Ирсол ба WhatsApp</button>';
 
-function editProduct(p) {
-  if (!p) return;
-
-  $("productId").value = p.id;
-  $("productName").value = p.name || "";
-  $("productPrice").value = p.price ?? 0;
-  $("productCategory").value = p.category || "";
-  $("productStock").value = p.stock ?? 0;
-  $("productImage").value = p.image_url || "";
-  $("productDescription").value = p.description || "";
-  $("productForm").scrollIntoView({behavior: "smooth"});
-}
-
-$("clearForm").onclick = () => {
-  $("productForm").reset();
-  $("productId").value = "";
-  $("productStock").value = 1;
-  showMessage("productMessage", "");
-};
-
-$("productForm").addEventListener("submit", async e => {
-  e.preventDefault();
-  showMessage("productMessage", "");
-
-  const name = $("productName").value.trim();
-  const price = Number($("productPrice").value);
-  const stock = Number($("productStock").value);
-
-  if (!name || !Number.isFinite(price) || price < 0 ||
-      !Number.isInteger(stock) || stock < 0) {
-    showMessage("productMessage", "Ном, нарх ва миқдорро санҷед.", true);
-    return;
-  }
-
-  const row = {
-    name,
-    price,
-    stock,
-    category: $("productCategory").value.trim() || null,
-    image_url: $("productImage").value.trim() || null,
-    description: $("productDescription").value.trim() || null,
-    is_active: true
+  $('sendWhatsApp').onclick=()=>{
+   window.open(
+    'https://wa.me/'+WHATSAPP_NUMBER+'?text='+encodeURIComponent(whatsappText),
+    '_blank','noopener'
+   );
   };
 
-  const id = $("productId").value;
-  const result = id
-    ? await db.from("products").update(row).eq("id", Number(id))
-    : await db.from("products").insert(row);
-
-  if (result.error) {
-    console.error(result.error);
-    showMessage("productMessage",
-      "Мол сабт нашуд. Иҷозатҳои администраторро санҷед.", true);
-    return;
-  }
-
-  $("productForm").reset();
-  $("productId").value = "";
-  $("productStock").value = 1;
-  showMessage("productMessage", "Мол сабт шуд.");
+  cart=[];
+  renderCart();
+  $('orderForm').reset();
   await loadProducts();
-  await loadAdminProducts();
+
+ }catch(err){
+  console.error('Order error:',err);
+  showMessage('orderMessage','Хатои пайвастшавӣ. Интернетро санҷида, боз кӯшиш кунед.',true);
+ }finally{
+  $('orderButton').disabled=false;
+  $('orderButton').textContent='Фиристодани фармоиш';
+ }
 });
 
-async function deleteProduct(id) {
-  if (!confirm("Ин молро нест мекунед?")) return;
+$('toggleLogin').onclick=()=>$('loginPanel').classList.toggle('hidden');
 
-  const {error} = await db.from("products").delete().eq("id", id);
+async function updateAuth(){
+ if(!user){
+  $('adminPanel').classList.add('hidden');
+  return;
+ }
 
-  if (error) {
+ const {data,error}=await db.from('store_admins')
+  .select('user_id')
+  .eq('user_id',user.id)
+  .maybeSingle();
+
+ if(error||!data){
+  await db.auth.signOut();
+  user=null;
+  $('adminPanel').classList.add('hidden');
+  $('loginPanel').classList.remove('hidden');
+  showMessage('loginMessage','Ин ҳисоби администратор нест. UID-ро дар store_admins санҷед.',true);
+  return;
+ }
+
+ $('loginPanel').classList.add('hidden');
+ $('adminPanel').classList.remove('hidden');
+ $('adminEmailLabel').textContent=user.email||'Администратор';
+ await loadAdminProducts();
+ await loadOrders();
+}
+
+$('loginForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+ showMessage('loginMessage','');
+
+ const {data,error}=await db.auth.signInWithPassword({
+  email:$('adminEmail').value.trim(),
+  password:$('adminPassword').value
+ });
+
+ if(error){
+  console.error(error);
+  showMessage('loginMessage','Ворид нашуд. Email ва паролро санҷед.',true);
+  return;
+ }
+
+ user=data.user;
+ await updateAuth();
+});
+
+$('logout').onclick=async()=>{
+ await db.auth.signOut();
+ user=null;
+ $('adminPanel').classList.add('hidden');
+ $('loginPanel').classList.remove('hidden');
+};
+
+async function loadAdminProducts(){
+ const {data,error}=await db.from('products')
+  .select('*')
+  .order('created_at',{ascending:false});
+
+ if(error){
+  $('adminProducts').textContent='Молҳоро хонда натавонист.';
+  console.error(error);
+  return;
+ }
+
+ if(!data||!data.length){
+  $('adminProducts').textContent='Ҳоло мол нест.';
+  return;
+ }
+
+ $('adminProducts').innerHTML=data.map(p=>`
+  <div class="adminitem">
+   <strong>${escapeHTML(p.name)}</strong>
+   <p>${money(p.price)} сомонӣ · Миқдор: ${Number(p.stock||0)} · ${p.is_active?'Фаъол':'Ғайрифаъол'}</p>
+   <button type="button" class="secondary" data-edit="${p.id}">Таҳрир</button>
+   <button type="button" class="danger" data-delete="${p.id}">Нест кардан</button>
+  </div>
+ `).join('');
+
+ $('adminProducts').querySelectorAll('[data-edit]').forEach(b=>{
+  b.onclick=()=>editProduct(data.find(p=>String(p.id)===b.dataset.edit));
+ });
+
+ $('adminProducts').querySelectorAll('[data-delete]').forEach(b=>{
+  b.onclick=()=>deleteProduct(Number(b.dataset.delete));
+ });
+}
+
+function editProduct(p){
+ if(!p)return;
+
+ $('productId').value=p.id;
+ $('productName').value=p.name||'';
+ $('productPrice').value=p.price??0;
+ $('productCategory').value=p.category||'';
+ $('productStock').value=p.stock??0;
+ $('productImage').value=p.image_url||'';
+ $('productDescription').value=p.description||'';
+ $('productForm').scrollIntoView({behavior:'smooth'});
+}
+
+$('clearForm').onclick=()=>{
+ $('productForm').reset();
+ $('productId').value='';
+ $('productStock').value=1;
+ showMessage('productMessage','');
+};
+
+$('productForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+ showMessage('productMessage','');
+
+ const name=$('productName').value.trim();
+ const price=Number($('productPrice').value);
+ const stock=Number($('productStock').value);
+
+ if(!name||!Number.isFinite(price)||price<0||!Number.isInteger(stock)||stock<0){
+  showMessage('productMessage','Ном, нарх ва миқдорро санҷед.',true);
+  return;
+ }
+
+ const row={
+  name,
+  price,
+  stock,
+  category:$('productCategory').value.trim()||null,
+  image_url:$('productImage').value.trim()||null,
+  description:$('productDescription').value.trim()||null,
+  is_active:true
+ };
+
+ const id=$('productId').value;
+ const result=id
+  ?await db.from('products').update(row).eq('id',Number(id))
+  :await db.from('products').insert(row);
+
+ if(result.error){
+  console.error(result.error);
+  showMessage('productMessage','Мол сабт нашуд. Иҷозатҳои администраторро санҷед.',true);
+  return;
+ }
+
+ $('productForm').reset();
+ $('productId').value='';
+ $('productStock').value=1;
+ showMessage('productMessage','Мол сабт шуд.');
+ await loadProducts();
+ await loadAdminProducts();
+});
+
+async function deleteProduct(id){
+ if(!confirm('Ин молро нест мекунед?'))return;
+
+ const {error}=await db.from('products').delete().eq('id',id);
+
+ if(error){
+  console.error(error);
+  alert('Мол нест карда нашуд. Иҷозатҳоро санҷед.');
+  return;
+ }
+
+ cart=cart.filter(x=>x.id!==id);
+ renderCart();
+ await loadProducts();
+ await loadAdminProducts();
+}
+
+async function loadOrders(){
+ const {data,error}=await db.from('orders')
+  .select('*')
+  .order('created_at',{ascending:false})
+  .limit(100);
+
+ if(error){
+  $('adminOrders').textContent='Фармоишҳоро хонда натавонист.';
+  console.error(error);
+  return;
+ }
+
+ if(!data||!data.length){
+  $('adminOrders').textContent='Ҳоло фармоиш нест.';
+  return;
+ }
+
+ $('adminOrders').innerHTML=data.map(o=>{
+  const lines=Array.isArray(o.items)
+   ?o.items.map(x=>`${x.name} × ${x.quantity}`).join(', ')
+   :'';
+
+  return `<div class="adminitem">
+   <strong>Фармоиш №${o.id}</strong>
+   <p>${escapeHTML(o.customer_name)} · ${escapeHTML(o.customer_phone)}</p>
+   <p>Суроға: ${escapeHTML(o.address)}</p>
+   <p>${escapeHTML(lines)}</p>
+   <p><strong>${money(o.total)} сомонӣ</strong></p>
+   <label for="status-${o.id}">Ҳолати фармоиш</label>
+   <select id="status-${o.id}" data-status="${o.id}">
+    <option value="new" ${o.status==='new'?'selected':''}>Нав</option>
+    <option value="confirmed" ${o.status==='confirmed'?'selected':''}>Тасдиқ шуд</option>
+    <option value="delivered" ${o.status==='delivered'?'selected':''}>Расонда шуд</option>
+    <option value="cancelled" ${o.status==='cancelled'?'selected':''}>Бекор шуд</option>
+   </select>
+   <button type="button" data-save-status="${o.id}">Сабти ҳолат</button>
+  </div>`;
+ }).join('');
+
+ $('adminOrders').querySelectorAll('[data-save-status]').forEach(b=>{
+  b.onclick=async()=>{
+   const id=Number(b.dataset.saveStatus);
+   const status=$('status-'+id).value;
+   const {error}=await db.from('orders').update({status}).eq('id',id);
+
+   if(error){
     console.error(error);
-    alert("Мол нест карда нашуд. Иҷозатҳоро санҷед.");
-    return;
-  }
+    alert('Ҳолат сабт нашуд. Policies ва иҷозатҳоро санҷед.');
+   }else{
+    await loadOrders();
+   }
+  };
+ });
+}
 
-  cart = cart.filter(x => x.id !== id);
-  renderCart();
+$('refreshOrders').onclick=loadOrders;
+
+async function start(){
+ try{
+  const {data,error}=await db.auth.getSession();
+  if(error)console.error(error);
+  user=data?.session?.user||null;
+  await updateAuth();
   await loadProducts();
-  await loadAdminProducts();
-}
-
-/* Фармоишҳо барои администратор */
-async function loadOrders() {
-  const {data, error} = await db.from("orders")
-    .select("*")
-    .order("created_at", {ascending: false})
-    .limit(100);
-
-  if (error) {
-    $("adminOrders").textContent = "Фармоишҳоро хонда натавонист.";
-    console.error(error);
-    return;
-  }
-
-  if (!data || !data.length) {
-    $("adminOrders").textContent = "Ҳоло фармоиш нест.";
-    return;
-  }
-
-  $("adminOrders").innerHTML = data.map(o => {
-    const lines = Array.isArray(o.items)
-      ? o.items.map(x => `${x.name} × ${x.quantity}`).join(", ")
-      : "";
-
-    return `<div class="adminitem">
-      <strong>Фармоиш №${o.id}</strong>
-      <p>${escapeHTML(o.customer_name)} · ${escapeHTML(o.customer_phone)}</p>
-      <p>Суроға: ${escapeHTML(o.address)}</p>
-      <p>${escapeHTML(lines)}</p>
-      <p><strong>${money(o.total)} сомонӣ</strong></p>
-      <label for="status-${o.id}">Ҳолати фармоиш</label>
-      <select id="status-${o.id}" data-status="${o.id}">
-        <option value="new" ${o.status === "new" ? "selected" : ""}>Нав</option>
-        <option value="confirmed" ${o.status === "confirmed" ? "selected" : ""}>Тасдиқ шуд</option>
-        <option value="delivered" ${o.status === "delivered" ? "selected" : ""}>Расонда шуд</option>
-        <option value="cancelled" ${o.status === "cancelled" ? "selected" : ""}>Бекор шуд</option>
-      </select>
-      <button type="button" data-save-status="${o.id}">Сабти ҳолат</button>
-    </div>`;
-  }).join("");
-
-  $("adminOrders").querySelectorAll("[data-save-status]").forEach(button => {
-    button.onclick = async () => {
-      const id = Number(button.dataset.saveStatus);
-      const status = $("status-" + id).value;
-
-      const {error} = await db.from("orders")
-        .update({status})
-        .eq("id", id);
-
-      if (error) {
-        console.error(error);
-        alert("Ҳолат сабт нашуд. Policies ва иҷозатҳоро санҷед.");
-      } else {
-        await loadOrders();
-      }
-    };
-  });
-}
-
-$("refreshOrders").onclick = loadOrders;
-
-async function start() {
-  try {
-    const {data, error} = await db.auth.getSession();
-    if (error) console.error(error);
-
-    user = data?.session?.user || null;
-    await updateAuth();
-    await loadProducts();
-  } catch (err) {
-    console.error(err);
-    $("catalogMessage").textContent =
-      "Пайвастшавӣ ноком шуд. Интернет ва танзимоти Supabase-ро санҷед.";
-  }
+ }catch(err){
+  console.error(err);
+  $('catalogMessage').textContent='Пайвастшавӣ ноком шуд. Интернет ва танзимоти Supabase-ро санҷед.';
+ }
 }
 
 start();

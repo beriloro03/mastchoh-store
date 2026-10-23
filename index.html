@@ -18,6 +18,7 @@ main{max-width:1100px;margin:auto;padding:16px}
 input,textarea,button,select{font:inherit;padding:11px;border-radius:9px}
 input,textarea,select{width:100%;border:1px solid #ccd5d8;margin:5px 0 12px}
 button{background:#0f766e;color:white;border:0;cursor:pointer}
+button:disabled{opacity:.55;cursor:not-allowed}
 button.secondary{background:#e3eeee;color:#115e59}
 button.danger{background:#b42318}
 .search{margin:15px 0}
@@ -44,85 +45,79 @@ footer{text-align:center;padding:25px;color:#667085}
 </head>
 <body>
 <header>
-  <h1>MASTCHOH.STORE</h1>
-  <p>Мағозаи онлайни ту — харид осон!</p>
+<h1>MASTCHOH.STORE</h1>
+<p>Мағозаи онлайни ту — харид осон!</p>
 </header>
-
 <main>
-  <input id="search" class="search" placeholder="Ҷустуҷӯи мол...">
+<input id="search" class="search" placeholder="Ҷустуҷӯи мол..." aria-label="Ҷустуҷӯи мол">
+<div class="categories" id="categories"></div>
+<p id="catalogMessage" class="notice">Каталог бор шуда истодааст...</p>
+<section id="products" class="grid"></section>
 
-  <div class="categories" id="categories"></div>
-  <p id="catalogMessage" class="notice">Каталог бор шуда истодааст...</p>
-  <section id="products" class="grid"></section>
+<section class="panel" id="checkout">
+<h2>🛒 Сабади харид</h2>
+<div id="cartItems">Сабад холӣ аст.</div>
+<h3>Ҳамагӣ: <span id="total">0</span> сомонӣ</h3>
+<form id="orderForm">
+<label for="customerName">Ному насаб *</label>
+<input id="customerName" required maxlength="100" autocomplete="name">
+<label for="customerPhone">Рақами телефон *</label>
+<input id="customerPhone" required maxlength="30" placeholder="+992..." autocomplete="tel">
+<label for="address">Суроға *</label>
+<textarea id="address" required maxlength="500" autocomplete="street-address"></textarea>
+<button type="submit" id="orderButton">Фиристодани фармоиш</button>
+</form>
+<div id="orderMessage" aria-live="polite"></div>
+</section>
 
-  <section class="panel" id="checkout">
-    <h2>🛒 Сабади харид</h2>
-    <div id="cartItems">Сабад холӣ аст.</div>
-    <h3>Ҳамагӣ: <span id="total">0</span> сомонӣ</h3>
-    <form id="orderForm">
-      <label>Ному насаб *</label>
-      <input id="customerName" required maxlength="100">
-      <label>Рақами телефон *</label>
-      <input id="customerPhone" required maxlength="30" placeholder="+992...">
-      <label>Суроға *</label>
-      <textarea id="address" required maxlength="500"></textarea>
-      <button type="submit" id="orderButton">Фиристодани фармоиш</button>
-    </form>
-    <div id="orderMessage"></div>
-  </section>
+<section class="panel">
+<div class="row">
+<h2>⚙️ Идоракунии мағоза</h2>
+<button id="toggleLogin" class="secondary" type="button">Кушодан / пӯшидан</button>
+</div>
+<div id="loginPanel" class="hidden">
+<p class="muted">Бо email ва пароли ҳисоби администратори Supabase ворид шавед.</p>
+<form id="loginForm">
+<label for="adminEmail">Email</label>
+<input id="adminEmail" type="email" required autocomplete="username">
+<label for="adminPassword">Парол</label>
+<input id="adminPassword" type="password" required autocomplete="current-password">
+<button type="submit">Ворид шудан</button>
+</form>
+<div id="loginMessage"></div>
+</div>
 
-  <section class="panel">
-    <div class="row">
-      <h2>⚙️ Идоракунии мағоза</h2>
-      <button id="toggleLogin" class="secondary">Кушодан / пӯшидан</button>
-    </div>
-
-    <div id="loginPanel" class="hidden">
-      <p class="muted">Бо email ва пароли ҳисоби администратори Supabase ворид шавед.</p>
-      <form id="loginForm">
-        <label>Email</label>
-        <input id="adminEmail" type="email" required autocomplete="username">
-        <label>Парол</label>
-        <input id="adminPassword" type="password" required autocomplete="current-password">
-        <button type="submit">Ворид шудан</button>
-      </form>
-      <div id="loginMessage"></div>
-    </div>
-
-    <div id="adminPanel" class="hidden">
-      <div class="row">
-        <p id="adminEmailLabel"></p>
-        <button id="logout" class="danger">Баромадан</button>
-      </div>
-
-      <h3>Илова ё таҳрири мол</h3>
-      <form id="productForm">
-        <input id="productId" type="hidden">
-        <label>Номи мол *</label>
-        <input id="productName" required maxlength="150">
-        <label>Нарх бо сомонӣ *</label>
-        <input id="productPrice" type="number" min="0" step="0.01" required>
-        <label>Категория</label>
-        <input id="productCategory" maxlength="80" placeholder="Электроника, либос...">
-        <label>Миқдор дар анбор</label>
-        <input id="productStock" type="number" min="0" step="1" value="1">
-        <label>Суроғаи тасвир (URL)</label>
-        <input id="productImage" type="url" placeholder="https://...">
-        <label>Тавсифи мол</label>
-        <textarea id="productDescription" maxlength="2000"></textarea>
-        <button type="submit">Сабт кардани мол</button>
-        <button type="button" class="secondary" id="clearForm">Тоза кардани форма</button>
-      </form>
-      <div id="productMessage"></div>
-
-      <h3>Молҳои мағоза</h3>
-      <div id="adminProducts"></div>
-
-      <h3>Фармоишҳои харидорон</h3>
-      <button id="refreshOrders" class="secondary">Нав кардани рӯйхат</button>
-      <div id="adminOrders"></div>
-    </div>
-  </section>
+<div id="adminPanel" class="hidden">
+<div class="row">
+<p id="adminEmailLabel"></p>
+<button id="logout" class="danger" type="button">Баромадан</button>
+</div>
+<h3>Илова ё таҳрири мол</h3>
+<form id="productForm">
+<input id="productId" type="hidden">
+<label for="productName">Номи мол *</label>
+<input id="productName" required maxlength="150">
+<label for="productPrice">Нарх бо сомонӣ *</label>
+<input id="productPrice" type="number" min="0" step="0.01" required>
+<label for="productCategory">Категория</label>
+<input id="productCategory" maxlength="80" placeholder="Электроника, либос...">
+<label for="productStock">Миқдор дар анбор</label>
+<input id="productStock" type="number" min="0" step="1" value="1">
+<label for="productImage">Суроғаи тасвир (URL)</label>
+<input id="productImage" type="url" placeholder="https://...">
+<label for="productDescription">Тавсифи мол</label>
+<textarea id="productDescription" maxlength="2000"></textarea>
+<button type="submit">Сабт кардани мол</button>
+<button type="button" class="secondary" id="clearForm">Тоза кардани форма</button>
+</form>
+<div id="productMessage"></div>
+<h3>Молҳои мағоза</h3>
+<div id="adminProducts"></div>
+<h3>Фармоишҳои харидорон</h3>
+<button id="refreshOrders" class="secondary" type="button">Нав кардани рӯйхат</button>
+<div id="adminOrders"></div>
+</div>
+</section>
 </main>
 <footer>© <span id="year"></span> MASTCHOH.STORE</footer>
 
@@ -130,7 +125,8 @@ footer{text-align:center;padding:25px;color:#667085}
 (() => {
 "use strict";
 
-/* Маълумоти лоиҳаи Supabase */
+// Танҳо publishable key истифода мешавад.
+// Service-role key-ро ҳеҷ гоҳ дар HTML ҷой надиҳед.
 const SUPABASE_URL = "https://klxjebbgpuatwreupdts.supabase.co";
 const SUPABASE_KEY = "sb_publishable_IXrEmPBVU9esqWumh9Q2bw_u7NCiHOR";
 const WHATSAPP_NUMBER = "79964468762";
@@ -151,18 +147,21 @@ const money = n => Number(n || 0).toLocaleString("tg-TJ", {
 
 function escapeHTML(value) {
   return String(value ?? "").replace(/[&<>"']/g, c => ({
-    "&":"&amp;", "<":"&lt;", ">":"&gt;",
-    '"':"&quot;", "'":"&#39;"
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#39;"
   }[c]));
 }
 
-function showMessage(id, text, error=false) {
+function showMessage(id, text, error = false) {
   $(id).innerHTML = text
     ? `<div class="notice ${error ? "error" : ""}">${escapeHTML(text)}</div>`
     : "";
 }
 
-/* Бор кардани молҳо аз Supabase */
+/* Каталоги молҳо */
 async function loadProducts() {
   $("catalogMessage").textContent = "Каталог бор шуда истодааст...";
   $("catalogMessage").classList.remove("hidden");
@@ -171,7 +170,7 @@ async function loadProducts() {
     .from("products")
     .select("id,name,description,price,image_url,category,stock,is_active")
     .eq("is_active", true)
-    .order("created_at", {ascending:false});
+    .order("created_at", {ascending: false});
 
   if (error) {
     console.error(error);
@@ -185,8 +184,9 @@ async function loadProducts() {
       : "Ҳоло мол нест. Администратор метавонад мол илова кунад.";
   }
 
-  $("catalogMessage").classList.toggle("hidden",
-    !error && products.length > 0);
+  $("catalogMessage").classList.toggle(
+    "hidden", !error && products.length > 0
+  );
 
   renderCategories();
   renderProducts();
@@ -201,7 +201,7 @@ function renderCategories() {
   if (!names.includes(category)) category = "Ҳама";
 
   $("categories").innerHTML = names.map(name =>
-    `<button type="button" class="${name===category?"active":""}"
+    `<button type="button" class="${name === category ? "active" : ""}"
       data-category="${escapeHTML(name)}">${escapeHTML(name)}</button>`
   ).join("");
 
@@ -224,8 +224,7 @@ function renderProducts() {
   );
 
   if (!list.length) {
-    $("products").innerHTML =
-      '<div class="card">Мол ёфт нашуд.</div>';
+    $("products").innerHTML = '<div class="card">Мол ёфт нашуд.</div>';
     return;
   }
 
@@ -240,9 +239,8 @@ function renderProducts() {
       <p>${escapeHTML(p.description || "")}</p>
       <div class="price">${money(p.price)} сомонӣ</div>
       <p class="muted">Дар анбор: ${Number(p.stock || 0)}</p>
-      <button data-add="${p.id}" ${Number(p.stock)<=0?"disabled":""}>
-        Ба сабад
-      </button>
+      <button type="button" data-add="${Number(p.id)}"
+        ${Number(p.stock) <= 0 ? "disabled" : ""}>Ба сабад</button>
     </article>
   `).join("");
 
@@ -258,6 +256,7 @@ function addToCart(id) {
   if (!p || Number(p.stock) <= 0) return;
 
   const item = cart.find(x => x.id === id);
+
   if (item) {
     if (item.qty >= Number(p.stock)) {
       alert("Дар анбор ин қадар мол нест.");
@@ -266,21 +265,25 @@ function addToCart(id) {
     item.qty++;
   } else {
     cart.push({
-      id:p.id, name:p.name, price:Number(p.price),
-      qty:1, stock:Number(p.stock)
+      id: p.id,
+      name: p.name,
+      price: Number(p.price),
+      qty: 1,
+      stock: Number(p.stock)
     });
   }
+
   renderCart();
 }
 
 function renderCart() {
   if (!cart.length) {
-    $("cartItems").innerHTML = "Сабад холӣ аст.";
+    $("cartItems").textContent = "Сабад холӣ аст.";
   } else {
     $("cartItems").innerHTML = cart.map(x => `
       <div class="item">
         <strong>${escapeHTML(x.name)}</strong>
-        <p>${money(x.price)} × ${x.qty} = ${money(x.price*x.qty)} сомонӣ</p>
+        <p>${money(x.price)} × ${x.qty} = ${money(x.price * x.qty)} сомонӣ</p>
         <button type="button" class="secondary" data-minus="${x.id}">−</button>
         <button type="button" class="secondary" data-plus="${x.id}">+</button>
         <button type="button" class="danger" data-remove="${x.id}">Нест кардан</button>
@@ -289,27 +292,34 @@ function renderCart() {
   }
 
   $("total").textContent = money(
-    cart.reduce((sum,x) => sum+x.price*x.qty, 0)
+    cart.reduce((sum, x) => sum + x.price * x.qty, 0)
   );
 
-  $("cartItems").querySelectorAll("[data-minus]").forEach(b =>
-    b.onclick = () => changeQty(Number(b.dataset.minus), -1));
-  $("cartItems").querySelectorAll("[data-plus]").forEach(b =>
-    b.onclick = () => changeQty(Number(b.dataset.plus), 1));
-  $("cartItems").querySelectorAll("[data-remove]").forEach(b =>
-    b.onclick = () => {
-      cart = cart.filter(x => x.id !== Number(b.dataset.remove));
+  $("cartItems").querySelectorAll("[data-minus]").forEach(button => {
+    button.onclick = () => changeQty(Number(button.dataset.minus), -1);
+  });
+
+  $("cartItems").querySelectorAll("[data-plus]").forEach(button => {
+    button.onclick = () => changeQty(Number(button.dataset.plus), 1);
+  });
+
+  $("cartItems").querySelectorAll("[data-remove]").forEach(button => {
+    button.onclick = () => {
+      cart = cart.filter(x => x.id !== Number(button.dataset.remove));
       renderCart();
-    });
+    };
+  });
 }
 
 function changeQty(id, amount) {
   const item = cart.find(x => x.id === id);
   if (!item) return;
+
   if (amount > 0 && item.qty >= item.stock) {
     alert("Аз миқдори анбор зиёд интихоб карда намешавад.");
     return;
   }
+
   item.qty += amount;
   if (item.qty <= 0) cart = cart.filter(x => x.id !== id);
   renderCart();
@@ -328,54 +338,76 @@ $("orderForm").addEventListener("submit", async e => {
   const name = $("customerName").value.trim();
   const phone = $("customerPhone").value.trim();
   const address = $("address").value.trim();
-  const total = cart.reduce((s,x) => s+x.price*x.qty, 0);
+
+  if (!name || !phone || !address) {
+    showMessage("orderMessage",
+      "Лутфан ном, телефон ва суроғаро пур кунед.", true);
+    return;
+  }
+
+  const total = cart.reduce((sum, x) => sum + x.price * x.qty, 0);
   const items = cart.map(x => ({
-    product_id:x.id, name:x.name, price:x.price, quantity:x.qty
+    product_id: x.id,
+    name: x.name,
+    price: x.price,
+    quantity: x.qty
   }));
 
   $("orderButton").disabled = true;
   $("orderButton").textContent = "Сабт шуда истодааст...";
 
-  const {data,error} = await db.from("orders").insert({
-    customer_name:name,
-    customer_phone:phone,
-    address,
-    items,
-    total,
-    status:"new"
-  }).select("id").single();
+  try {
+    // Фармоиш ворид мешавад, аммо маълумоти фармоишҳо ба меҳмонон баргардонида намешавад.
+    const {error} = await db.from("orders").insert({
+      customer_name: name,
+      customer_phone: phone,
+      address: address,
+      items: items,
+      total: total,
+      status: "new"
+    });
 
-  $("orderButton").disabled = false;
-  $("orderButton").textContent = "Фиристодани фармоиш";
+    if (error) {
+      console.error("Order insert error:", error);
+      showMessage("orderMessage",
+        "Фармоиш сабт нашуд. Интернет ва иҷозатҳои Supabase-ро санҷед.",
+        true);
+      return;
+    }
 
-  if (error) {
-    console.error(error);
+    const lines = items.map(x =>
+      `• ${x.name} — ${x.quantity} × ${x.price} сомонӣ`
+    ).join("\n");
+
+    const whatsappText =
+      `Фармоиши нав аз MASTCHOH.STORE\n` +
+      `Ном: ${name}\n` +
+      `Телефон: ${phone}\n` +
+      `Суроға: ${address}\n\n` +
+      `${lines}\nҲамагӣ: ${total} сомонӣ`;
+
+    $("orderMessage").innerHTML =
+      `<div class="notice">Фармоиши шумо қабул шуд. Мо бо шумо тамос мегирем.</div>
+       <button type="button" id="sendWhatsApp">Ирсол ба WhatsApp</button>`;
+
+    $("sendWhatsApp").onclick = () => {
+      const url = "https://wa.me/" + WHATSAPP_NUMBER +
+        "?text=" + encodeURIComponent(whatsappText);
+      window.open(url, "_blank", "noopener");
+    };
+
+    cart = [];
+    renderCart();
+    $("orderForm").reset();
+
+  } catch (err) {
+    console.error("Order error:", err);
     showMessage("orderMessage",
-      "Фармоиш сабт нашуд. Интернет ва танзимоти Supabase-ро санҷед.", true);
-    return;
+      "Хатои пайвастшавӣ. Интернетро санҷида, боз кӯшиш кунед.", true);
+  } finally {
+    $("orderButton").disabled = false;
+    $("orderButton").textContent = "Фиристодани фармоиш";
   }
-
-  const orderId = data.id;
-  const lines = items.map(x =>
-    `• ${x.name} — ${x.quantity} × ${x.price} сомонӣ`
-  ).join("\n");
-
-  const whatsappText =
-    `Фармоиши MASTCHOH.STORE №${orderId}\nНом: ${name}\nТелефон: ${phone}\nСуроға: ${address}\n\n${lines}\nҲамагӣ: ${total} сомонӣ`;
-
-  cart = [];
-  renderCart();
-  $("orderForm").reset();
-
-  $("orderMessage").innerHTML =
-    `<div class="notice">Фармоиш №${orderId} сабт шуд.</div>
-     <button type="button" id="sendWhatsApp">Ирсол ба WhatsApp</button>`;
-
-  $("sendWhatsApp").onclick = () => {
-    const url = "https://wa.me/" + WHATSAPP_NUMBER +
-      "?text=" + encodeURIComponent(whatsappText);
-    window.open(url, "_blank", "noopener");
-  };
 });
 
 /* Воридшавии администратор */
@@ -386,12 +418,13 @@ $("toggleLogin").onclick = () => {
 async function updateAuth() {
   if (!user) {
     $("adminPanel").classList.add("hidden");
-    $("loginPanel").classList.remove("hidden");
     return;
   }
 
-  const {data,error} = await db.from("store_admins")
-    .select("user_id").eq("user_id", user.id).maybeSingle();
+  const {data, error} = await db.from("store_admins")
+    .select("user_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
 
   if (error || !data) {
     await db.auth.signOut();
@@ -414,15 +447,14 @@ $("loginForm").addEventListener("submit", async e => {
   e.preventDefault();
   showMessage("loginMessage", "");
 
-  const {data,error} = await db.auth.signInWithPassword({
-    email:$("adminEmail").value.trim(),
-    password:$("adminPassword").value
+  const {data, error} = await db.auth.signInWithPassword({
+    email: $("adminEmail").value.trim(),
+    password: $("adminPassword").value
   });
 
   if (error) {
     console.error(error);
-    showMessage("loginMessage",
-      "Ворид нашуд. Email ва паролро санҷед.", true);
+    showMessage("loginMessage", "Ворид нашуд. Email ва паролро санҷед.", true);
     return;
   }
 
@@ -433,13 +465,15 @@ $("loginForm").addEventListener("submit", async e => {
 $("logout").onclick = async () => {
   await db.auth.signOut();
   user = null;
-  await updateAuth();
+  $("adminPanel").classList.add("hidden");
+  $("loginPanel").classList.remove("hidden");
 };
 
 /* Идоракунии молҳо */
 async function loadAdminProducts() {
-  const {data,error} = await db.from("products")
-    .select("*").order("created_at", {ascending:false});
+  const {data, error} = await db.from("products")
+    .select("*")
+    .order("created_at", {ascending: false});
 
   if (error) {
     $("adminProducts").textContent = "Молҳоро хонда натавонист.";
@@ -455,22 +489,27 @@ async function loadAdminProducts() {
   $("adminProducts").innerHTML = data.map(p => `
     <div class="adminitem">
       <strong>${escapeHTML(p.name)}</strong>
-      <p>${money(p.price)} сомонӣ · Миқдор: ${Number(p.stock||0)}</p>
+      <p>${money(p.price)} сомонӣ · Миқдор: ${Number(p.stock || 0)}
+        · ${p.is_active ? "Фаъол" : "Ғайрифаъол"}</p>
       <button type="button" class="secondary" data-edit="${p.id}">Таҳрир</button>
       <button type="button" class="danger" data-delete="${p.id}">Нест кардан</button>
     </div>
   `).join("");
 
-  $("adminProducts").querySelectorAll("[data-edit]").forEach(b => {
-    b.onclick = () => editProduct(data.find(p => String(p.id) === b.dataset.edit));
+  $("adminProducts").querySelectorAll("[data-edit]").forEach(button => {
+    button.onclick = () => editProduct(
+      data.find(p => String(p.id) === button.dataset.edit)
+    );
   });
-  $("adminProducts").querySelectorAll("[data-delete]").forEach(b => {
-    b.onclick = () => deleteProduct(Number(b.dataset.delete));
+
+  $("adminProducts").querySelectorAll("[data-delete]").forEach(button => {
+    button.onclick = () => deleteProduct(Number(button.dataset.delete));
   });
 }
 
 function editProduct(p) {
   if (!p) return;
+
   $("productId").value = p.id;
   $("productName").value = p.name || "";
   $("productPrice").value = p.price ?? 0;
@@ -478,7 +517,7 @@ function editProduct(p) {
   $("productStock").value = p.stock ?? 0;
   $("productImage").value = p.image_url || "";
   $("productDescription").value = p.description || "";
-  $("productForm").scrollIntoView({behavior:"smooth"});
+  $("productForm").scrollIntoView({behavior: "smooth"});
 }
 
 $("clearForm").onclick = () => {
@@ -506,10 +545,10 @@ $("productForm").addEventListener("submit", async e => {
     name,
     price,
     stock,
-    category:$("productCategory").value.trim() || null,
-    image_url:$("productImage").value.trim() || null,
-    description:$("productDescription").value.trim() || null,
-    is_active:true
+    category: $("productCategory").value.trim() || null,
+    image_url: $("productImage").value.trim() || null,
+    description: $("productDescription").value.trim() || null,
+    is_active: true
   };
 
   const id = $("productId").value;
@@ -536,6 +575,7 @@ async function deleteProduct(id) {
   if (!confirm("Ин молро нест мекунед?")) return;
 
   const {error} = await db.from("products").delete().eq("id", id);
+
   if (error) {
     console.error(error);
     alert("Мол нест карда нашуд. Иҷозатҳоро санҷед.");
@@ -548,10 +588,12 @@ async function deleteProduct(id) {
   await loadAdminProducts();
 }
 
-/* Рӯйхати фармоишҳо барои администратор */
+/* Фармоишҳо барои администратор */
 async function loadOrders() {
-  const {data,error} = await db.from("orders")
-    .select("*").order("created_at", {ascending:false}).limit(100);
+  const {data, error} = await db.from("orders")
+    .select("*")
+    .order("created_at", {ascending: false})
+    .limit(100);
 
   if (error) {
     $("adminOrders").textContent = "Фармоишҳоро хонда натавонист.";
@@ -565,34 +607,39 @@ async function loadOrders() {
   }
 
   $("adminOrders").innerHTML = data.map(o => {
-    const items = Array.isArray(o.items)
+    const lines = Array.isArray(o.items)
       ? o.items.map(x => `${x.name} × ${x.quantity}`).join(", ")
       : "";
+
     return `<div class="adminitem">
       <strong>Фармоиш №${o.id}</strong>
       <p>${escapeHTML(o.customer_name)} · ${escapeHTML(o.customer_phone)}</p>
       <p>Суроға: ${escapeHTML(o.address)}</p>
-      <p>${escapeHTML(items)}</p>
+      <p>${escapeHTML(lines)}</p>
       <p><strong>${money(o.total)} сомонӣ</strong></p>
-      <label>Ҳолати фармоиш</label>
-      <select data-status="${o.id}">
-        <option value="new" ${o.status==="new"?"selected":""}>Нав</option>
-        <option value="confirmed" ${o.status==="confirmed"?"selected":""}>Тасдиқ шуд</option>
-        <option value="delivered" ${o.status==="delivered"?"selected":""}>Расонда шуд</option>
-        <option value="cancelled" ${o.status==="cancelled"?"selected":""}>Бекор шуд</option>
+      <label for="status-${o.id}">Ҳолати фармоиш</label>
+      <select id="status-${o.id}" data-status="${o.id}">
+        <option value="new" ${o.status === "new" ? "selected" : ""}>Нав</option>
+        <option value="confirmed" ${o.status === "confirmed" ? "selected" : ""}>Тасдиқ шуд</option>
+        <option value="delivered" ${o.status === "delivered" ? "selected" : ""}>Расонда шуд</option>
+        <option value="cancelled" ${o.status === "cancelled" ? "selected" : ""}>Бекор шуд</option>
       </select>
       <button type="button" data-save-status="${o.id}">Сабти ҳолат</button>
     </div>`;
   }).join("");
 
-  $("adminOrders").querySelectorAll("[data-save-status]").forEach(b => {
-    b.onclick = async () => {
-      const id = Number(b.dataset.saveStatus);
-      const status = $("adminOrders").querySelector(`[data-status="${id}"]`).value;
-      const {error} = await db.from("orders").update({status}).eq("id", id);
+  $("adminOrders").querySelectorAll("[data-save-status]").forEach(button => {
+    button.onclick = async () => {
+      const id = Number(button.dataset.saveStatus);
+      const status = $("status-" + id).value;
+
+      const {error} = await db.from("orders")
+        .update({status})
+        .eq("id", id);
+
       if (error) {
         console.error(error);
-        alert("Ҳолат сабт нашуд. Policies-ро санҷед.");
+        alert("Ҳолат сабт нашуд. Policies ва иҷозатҳоро санҷед.");
       } else {
         await loadOrders();
       }
@@ -603,10 +650,18 @@ async function loadOrders() {
 $("refreshOrders").onclick = loadOrders;
 
 async function start() {
-  const {data} = await db.auth.getSession();
-  user = data.session?.user || null;
-  await updateAuth();
-  await loadProducts();
+  try {
+    const {data, error} = await db.auth.getSession();
+    if (error) console.error(error);
+
+    user = data?.session?.user || null;
+    await updateAuth();
+    await loadProducts();
+  } catch (err) {
+    console.error(err);
+    $("catalogMessage").textContent =
+      "Пайвастшавӣ ноком шуд. Интернет ва танзимоти Supabase-ро санҷед.";
+  }
 }
 
 start();

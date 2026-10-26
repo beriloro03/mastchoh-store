@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="tg">
 <head>
@@ -9,679 +8,245 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{font-family:Arial,sans-serif;color:#17212b;background:#f4f7f7}
-*{box-sizing:border-box}
-body{margin:0}
-header{background:#0f766e;color:#fff;padding:17px}
-header h1{margin:0;font-size:24px}
-header p{margin:7px 0 0}
+*{box-sizing:border-box}body{margin:0}
+header{background:#0f766e;color:#fff;padding:17px}header h1{margin:0;font-size:24px}header p{margin:7px 0 0}
 main{max-width:1100px;margin:auto;padding:16px}
 input,textarea,button,select{font:inherit;padding:11px;border-radius:9px}
 input,textarea,select{width:100%;border:1px solid #ccd5d8;margin:5px 0 12px}
-button{background:#0f766e;color:white;border:0;cursor:pointer}
-button:disabled{opacity:.55;cursor:not-allowed}
-button.secondary{background:#e3eeee;color:#115e59}
-button.danger{background:#b42318}
-.search{margin:15px 0}
-.categories{display:flex;gap:8px;flex-wrap:wrap;margin:15px 0}
-.categories button{background:#e3eeee;color:#115e59}
-.categories button.active{background:#0f766e;color:white}
+button{background:#0f766e;color:white;border:0;cursor:pointer}button:disabled{opacity:.55;cursor:not-allowed}
+button.secondary{background:#e3eeee;color:#115e59}button.danger{background:#b42318}
+.search{margin:15px 0}.categories{display:flex;gap:8px;flex-wrap:wrap;margin:15px 0}
+.categories button{background:#e3eeee;color:#115e59}.categories button.active{background:#0f766e;color:white}
 .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
 .card,.panel{background:white;border:1px solid #e0e6e8;border-radius:13px;padding:13px;margin-bottom:15px}
-.card img{width:100%;height:155px;object-fit:cover;border-radius:9px}
-.card h3{margin:9px 0}
-.price{font-weight:bold;color:#0f766e;font-size:19px}
-.muted{color:#667085;font-size:14px}
-.panel{margin-top:22px}
-.hidden{display:none!important}
-.row{display:flex;justify-content:space-between;gap:8px;align-items:center}
-.notice{padding:12px;background:#e3eeee;border-radius:9px;margin:12px 0}
-.error{background:#ffeded;color:#a21d1d}
-.item{border-bottom:1px solid #e0e6e8;padding:10px 0}
-.adminitem{padding:12px;border:1px solid #e0e6e8;border-radius:9px;margin:8px 0}
+.card img.product-photo{width:100%;height:155px;object-fit:cover;border-radius:9px;cursor:zoom-in}
+.card h3{margin:9px 0}.price{font-weight:bold;color:#0f766e;font-size:19px}.muted{color:#667085;font-size:14px}
+.panel{margin-top:22px}.hidden{display:none!important}.row{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.notice{padding:12px;background:#e3eeee;border-radius:9px;margin:12px 0}.error{background:#ffeded;color:#a21d1d}
+.item{border-bottom:1px solid #e0e6e8;padding:10px 0}.adminitem{padding:12px;border:1px solid #e0e6e8;border-radius:9px;margin:8px 0}
 footer{text-align:center;padding:25px;color:#667085}
+.gallery-strip{display:flex;gap:6px;overflow-x:auto;margin:7px 0}
+.gallery-strip img{width:48px;height:48px;object-fit:cover;border-radius:6px;cursor:pointer;border:2px solid transparent}
+.gallery-strip img.active{border-color:#0f766e}
+.viewer{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.95);align-items:center;justify-content:center;padding:16px}
+.viewer.open{display:flex}.viewer img{max-width:88vw;max-height:78vh;object-fit:contain}
+.viewer button{position:absolute;min-width:44px;min-height:44px;border-radius:50%;font-size:24px}
+.viewer .close{top:12px;right:12px}.viewer .prev{left:12px;top:50%;transform:translateY(-50%)}.viewer .next{right:12px;top:50%;transform:translateY(-50%)}
+.viewer .counter{position:absolute;bottom:18px;color:white;background:#222;padding:8px 13px;border-radius:20px}
 @media(max-width:800px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:560px){
-.grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-.card{padding:9px}.card img{height:125px}
-header h1{font-size:21px}
-}
+@media(max-width:560px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.card{padding:9px}.card img.product-photo{height:125px}header h1{font-size:21px}}
 </style>
 </head>
 <body>
-<header>
-<h1>MASTCHOH.STORE</h1>
-<p>Мағозаи онлайни ту — харид осон!</p>
-</header>
+<header><h1>MASTCHOH.STORE</h1><p>Мағозаи онлайни ту — харид осон!</p></header>
 <main>
 <input id="search" class="search" placeholder="Ҷустуҷӯи мол..." aria-label="Ҷустуҷӯи мол">
 <div class="categories" id="categories"></div>
 <p id="catalogMessage" class="notice">Каталог бор шуда истодааст...</p>
 <section id="products" class="grid"></section>
-
 <section class="panel" id="checkout">
-<h2>🛒 Сабади харид</h2>
-<div id="cartItems">Сабад холӣ аст.</div>
+<h2>🛒 Сабади харид</h2><div id="cartItems">Сабад холӣ аст.</div>
 <h3>Ҳамагӣ: <span id="total">0</span> сомонӣ</h3>
 <form id="orderForm">
-<label for="customerName">Ному насаб *</label>
-<input id="customerName" required maxlength="100" autocomplete="name">
-<label for="customerPhone">Рақами телефон *</label>
-<input id="customerPhone" required maxlength="30" placeholder="+992..." autocomplete="tel">
-<label for="address">Суроға *</label>
-<textarea id="address" required maxlength="500" autocomplete="street-address"></textarea>
-<button type="submit" id="orderButton">Фиристодани фармоиш</button>
-</form>
-<div id="orderMessage" aria-live="polite"></div>
+<label for="customerName">Ному насаб *</label><input id="customerName" required maxlength="100" autocomplete="name">
+<label for="customerPhone">Рақами телефон *</label><input id="customerPhone" required maxlength="30" placeholder="+992..." autocomplete="tel">
+<label for="address">Суроға *</label><textarea id="address" required maxlength="500" autocomplete="street-address"></textarea>
+<button type="submit" id="orderButton">Фиристодани фармоиш</button></form><div id="orderMessage" aria-live="polite"></div>
 </section>
-
 <section class="panel">
-<div class="row">
-<h2>⚙️ Идоракунии мағоза</h2>
-<button id="toggleLogin" class="secondary" type="button">Кушодан / пӯшидан</button>
-</div>
-<div id="loginPanel" class="hidden">
-<p class="muted">Бо email ва пароли ҳисоби администратори Supabase ворид шавед.</p>
-<form id="loginForm">
-<label for="adminEmail">Email</label>
-<input id="adminEmail" type="email" required autocomplete="username">
-<label for="adminPassword">Парол</label>
-<input id="adminPassword" type="password" required autocomplete="current-password">
-<button type="submit">Ворид шудан</button>
-</form>
-<div id="loginMessage"></div>
-</div>
-
-<div id="adminPanel" class="hidden">
-<div class="row">
-<p id="adminEmailLabel"></p>
-<button id="logout" class="danger" type="button">Баромадан</button>
-</div>
+<div class="row"><h2>⚙️ Идоракунии мағоза</h2><button id="toggleLogin" class="secondary" type="button">Кушодан / пӯшидан</button></div>
+<div id="loginPanel" class="hidden"><p class="muted">Бо email ва пароли ҳисоби администратори Supabase ворид шавед.</p>
+<form id="loginForm"><label for="adminEmail">Email</label><input id="adminEmail" type="email" required autocomplete="username">
+<label for="adminPassword">Парол</label><input id="adminPassword" type="password" required autocomplete="current-password"><button type="submit">Ворид шудан</button></form><div id="loginMessage"></div></div>
+<div id="adminPanel" class="hidden"><div class="row"><p id="adminEmailLabel"></p><button id="logout" class="danger" type="button">Баромадан</button></div>
 <h3>Илова ё таҳрири мол</h3>
-<form id="productForm">
-<input id="productId" type="hidden">
-<label for="productName">Номи мол *</label>
-<input id="productName" required maxlength="150">
-<label for="productPrice">Нарх бо сомонӣ *</label>
-<input id="productPrice" type="number" min="0" step="0.01" required>
-<label for="productCategory">Категория</label>
-<input id="productCategory" maxlength="80" placeholder="Электроника, либос...">
-<label for="productStock">Миқдор дар анбор</label>
-<input id="productStock" type="number" min="0" step="1" value="1">
-<label for="productImageFile">📷 Интихоби сурат аз Галерея (то 5 MB)</label>
-<input id="productImageFile" type="file" accept="image/*">
-<label for="productImage">Ё суроғаи сурат (URL, ихтиёрӣ)</label>
-<input id="productImage" type="url" placeholder="https://...">
-<img id="imagePreview" class="hidden" alt="Пешнамоиши сурат" style="width:140px;height:140px;object-fit:contain;border-radius:10px;margin:5px 0 12px">
-<label for="productDescription">Тавсифи мол</label>
-<textarea id="productDescription" maxlength="2000"></textarea>
-<button type="submit">Сабт кардани мол</button>
-<button type="button" class="secondary" id="clearForm">Тоза кардани форма</button>
-</form>
-<div id="productMessage"></div>
-<h3>Молҳои мағоза</h3>
-<div id="adminProducts"></div>
-<h3>Фармоишҳои харидорон</h3>
-<button id="refreshOrders" class="secondary" type="button">Нав кардани рӯйхат</button>
-<div id="adminOrders"></div>
-</div>
-</section>
-</main>
+<form id="productForm"><input id="productId" type="hidden">
+<label for="productName">Номи мол *</label><input id="productName" required maxlength="150">
+<label for="productPrice">Нарх бо сомонӣ *</label><input id="productPrice" type="number" min="0" step="0.01" required>
+<label for="productCategory">Категория</label><input id="productCategory" maxlength="80" placeholder="Электроника, либос...">
+<label for="productStock">Миқдор дар анбор</label><input id="productStock" type="number" min="0" step="1" value="1">
+<label for="productImageFile">📷 Интихоби аксҳо аз Галерея (то 15 акс, ҳар кадом то 5 MB)</label>
+<input id="productImageFile" type="file" accept="image/*" multiple>
+<p class="muted">Ҳангоми таҳрир, аксҳои нав ба аксҳои пешина илова мешаванд. Барои иваз кардани аксҳо, тугмаи «Тоза кардани аксҳои интихобшуда» -ро пахш кунед.</p>
+<button type="button" id="clearSelectedImages" class="secondary">Тоза кардани аксҳои интихобшуда</button>
+<div id="selectedPreview" class="gallery-strip"></div>
+<label for="productImage">Ё URL-и акси аввал (ихтиёрӣ)</label><input id="productImage" type="url" placeholder="https://...">
+<label for="productDescription">Тавсифи мол</label><textarea id="productDescription" maxlength="2000"></textarea>
+<button type="submit" id="saveProductButton">Сабт кардани мол</button>
+<button type="button" class="secondary" id="clearForm">Тоза кардани форма</button></form>
+<div id="productMessage"></div><h3>Молҳои мағоза</h3><div id="adminProducts"></div>
+<h3>Фармоишҳои харидорон</h3><button id="refreshOrders" class="secondary" type="button">Нав кардани рӯйхат</button><div id="adminOrders"></div>
+</div></section></main>
+<div id="imageViewer" class="viewer" role="dialog" aria-modal="true" aria-label="Галереяи аксҳои мол">
+<button type="button" id="closeViewer" class="close" aria-label="Бастан">×</button>
+<button type="button" id="prevViewer" class="prev" aria-label="Акси пешина">‹</button>
+<img id="largeProductImage" src="" alt="Акси мол">
+<button type="button" id="nextViewer" class="next" aria-label="Акси баъдӣ">›</button>
+<div id="viewerCounter" class="counter">1 / 1</div></div>
 <footer>© <span id="year"></span> MASTCHOH.STORE</footer>
-
 <script>
 (() => {
 'use strict';
-
-// Танҳо калиди publishable-и Supabase-ро истифода баред.
 const SUPABASE_URL='https://klxjebbgpuatwreupdts.supabase.co';
 const SUPABASE_KEY='sb_publishable_IXrEmPBVU9esqWumh9Q2bw_u7NCiHOR';
-
-// Рақамро бо рамзи кишвар, бе + ва фосила санҷед.
 const WHATSAPP_NUMBER='79964468762';
-
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=id=>document.getElementById(id);
 let products=[],cart=[],category='Ҳама',user=null;
-
+let selectedFiles=[],existingImages=[],viewerImages=[],viewerIndex=0;
 $('year').textContent=new Date().getFullYear();
-
 const money=n=>Number(n||0).toLocaleString('tg-TJ',{maximumFractionDigits:2});
-
-function escapeHTML(v){
- return String(v??'').replace(/[&<>"']/g,c=>({
- '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
- }[c]));
+function escapeHTML(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function getImages(p){
+ let arr=Array.isArray(p.image_urls)?p.image_urls.filter(x=>typeof x==='string'&&x.trim()):[];
+ if(!arr.length&&p.image_url)arr=[p.image_url];
+ return [...new Set(arr)].slice(0,15);
 }
-
-function showMessage(id,text,error=false){
- $(id).innerHTML=text
- ?`<div class="notice ${error?'error':''}">${escapeHTML(text)}</div>`
- :'';
-}
-
+function showMessage(id,text,error=false){$(id).innerHTML=text?`<div class="notice ${error?'error':''}">${escapeHTML(text)}</div>`:'';}
 async function loadProducts(){
- $('catalogMessage').textContent='Каталог бор шуда истодааст...';
- $('catalogMessage').classList.remove('hidden');
-
- const {data,error}=await db.from('products')
- .select('id,name,description,price,image_url,category,stock,is_active')
- .eq('is_active',true).order('created_at',{ascending:false});
-
- if(error){
-  console.error(error);
-  products=[];
-  $('catalogMessage').textContent='Хатои пайвастшавӣ. Танзимоти Supabase-ро санҷед.';
- }else{
-  products=data||[];
-  $('catalogMessage').textContent=products.length
-  ?'':'Ҳоло мол нест. Администратор метавонад мол илова кунад.';
- }
-
- $('catalogMessage').classList.toggle('hidden',!error&&products.length>0);
- renderCategories();
- renderProducts();
- renderCart();
+ $('catalogMessage').textContent='Каталог бор шуда истодааст...';$('catalogMessage').classList.remove('hidden');
+ const {data,error}=await db.from('products').select('id,name,description,price,image_url,image_urls,category,stock,is_active').eq('is_active',true).order('created_at',{ascending:false});
+ if(error){console.error(error);products=[];$('catalogMessage').textContent='Хатои пайвастшавӣ. Танзимоти Supabase-ро санҷед.';}
+ else{products=data||[];$('catalogMessage').textContent=products.length?'':'Ҳоло мол нест. Администратор метавонад мол илова кунад.';}
+ $('catalogMessage').classList.toggle('hidden',!error&&products.length>0);renderCategories();renderProducts();renderCart();
 }
-
 function renderCategories(){
- const names=['Ҳама',...new Set(products.map(p=>(p.category||'').trim()).filter(Boolean))];
- if(!names.includes(category))category='Ҳама';
-
- $('categories').innerHTML=names.map(n=>
- `<button type="button" class="${n===category?'active':''}" data-category="${escapeHTML(n)}">${escapeHTML(n)}</button>`
- ).join('');
-
- $('categories').querySelectorAll('[data-category]').forEach(b=>{
-  b.onclick=()=>{
-   category=b.dataset.category;
-   renderCategories();
-   renderProducts();
-  };
- });
+ const names=['Ҳама',...new Set(products.map(p=>(p.category||'').trim()).filter(Boolean))];if(!names.includes(category))category='Ҳама';
+ $('categories').innerHTML=names.map(n=>`<button type="button" class="${n===category?'active':''}" data-category="${escapeHTML(n)}">${escapeHTML(n)}</button>`).join('');
+ $('categories').querySelectorAll('[data-category]').forEach(b=>b.onclick=()=>{category=b.dataset.category;renderCategories();renderProducts();});
 }
-
 function renderProducts(){
  const q=$('search').value.trim().toLocaleLowerCase();
- const list=products.filter(p=>
- (category==='Ҳама'||(p.category||'').trim()===category)&&
- `${p.name} ${p.description||''} ${p.category||''}`.toLocaleLowerCase().includes(q)
- );
-
- if(!list.length){
-  $('products').innerHTML='<div class="card">Мол ёфт нашуд.</div>';
-  return;
- }
-
- $('products').innerHTML=list.map(p=>`
- <article class="card">
- ${p.image_url
- ?`<img src="${escapeHTML(p.image_url)}" alt="${escapeHTML(p.name)}" loading="lazy" onerror="this.style.display='none'">`
- :'<div style="font-size:42px;text-align:center;padding:35px">📦</div>'}
- <h3>${escapeHTML(p.name)}</h3>
- <p class="muted">${escapeHTML(p.category||'')}</p>
- <p>${escapeHTML(p.description||'')}</p>
- <div class="price">${money(p.price)} сомонӣ</div>
- <p class="muted">Дар анбор: ${Number(p.stock||0)}</p>
- <button type="button" data-add="${Number(p.id)}" ${Number(p.stock)<=0?'disabled':''}>Ба сабад</button>
- </article>`).join('');
-
- $('products').querySelectorAll('[data-add]').forEach(b=>{
-  b.onclick=()=>addToCart(Number(b.dataset.add));
- });
+ const list=products.filter(p=>(category==='Ҳама'||(p.category||'').trim()===category)&&`${p.name} ${p.description||''} ${p.category||''}`.toLocaleLowerCase().includes(q));
+ if(!list.length){$('products').innerHTML='<div class="card">Мол ёфт нашуд.</div>';return;}
+ $('products').innerHTML=list.map(p=>{
+ const imgs=getImages(p),first=imgs[0];
+ return `<article class="card">
+ ${first?`<img class="product-photo" src="${escapeHTML(first)}" alt="${escapeHTML(p.name)}" loading="lazy" data-gallery="${Number(p.id)}" onerror="this.style.display='none'">`:'<div style="font-size:42px;text-align:center;padding:35px">📦</div>'}
+ ${imgs.length>1?`<div class="gallery-strip">${imgs.map((u,i)=>`<img src="${escapeHTML(u)}" alt="Акси ${i+1}" loading="lazy" data-gallery="${Number(p.id)}" data-gallery-index="${i}">`).join('')}</div>`:''}
+ <h3>${escapeHTML(p.name)}</h3><p class="muted">${escapeHTML(p.category||'')}</p><p>${escapeHTML(p.description||'')}</p>
+ <div class="price">${money(p.price)} сомонӣ</div><p class="muted">Дар анбор: ${Number(p.stock||0)}</p>
+ <button type="button" data-add="${Number(p.id)}" ${Number(p.stock)<=0?'disabled':''}>Ба сабад</button></article>`;
+ }).join('');
+ $('products').querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>addToCart(Number(b.dataset.add)));
+ $('products').querySelectorAll('[data-gallery]').forEach(el=>el.addEventListener('click',()=>{
+  const p=products.find(x=>Number(x.id)===Number(el.dataset.gallery));if(!p)return;
+  openViewer(getImages(p),Number(el.dataset.galleryIndex||0),p.name);
+ }));
 }
-
 $('search').addEventListener('input',renderProducts);
-
-function addToCart(id){
- const p=products.find(x=>Number(x.id)===id);
- if(!p||Number(p.stock)<=0)return;
-
- const item=cart.find(x=>x.id===id);
- if(item){
-  if(item.qty>=Number(p.stock)){
-   alert('Дар анбор ин қадар мол нест.');
-   return;
-  }
-  item.qty++;
- }else{
-  cart.push({id:p.id,name:p.name,price:Number(p.price),qty:1,stock:Number(p.stock)});
- }
- renderCart();
-}
-
+function addToCart(id){const p=products.find(x=>Number(x.id)===id);if(!p||Number(p.stock)<=0)return;const item=cart.find(x=>x.id===id);if(item){if(item.qty>=Number(p.stock)){alert('Дар анбор ин қадар мол нест.');return;}item.qty++;}else cart.push({id:p.id,name:p.name,price:Number(p.price),qty:1,stock:Number(p.stock)});renderCart();}
 function renderCart(){
- if(!cart.length){
-  $('cartItems').textContent='Сабад холӣ аст.';
- }else{
-  $('cartItems').innerHTML=cart.map(x=>`
-  <div class="item">
-  <strong>${escapeHTML(x.name)}</strong>
-  <p>${money(x.price)} × ${x.qty} = ${money(x.price*x.qty)} сомонӣ</p>
-  <button type="button" class="secondary" data-minus="${x.id}">−</button>
-  <button type="button" class="secondary" data-plus="${x.id}">+</button>
-  <button type="button" class="danger" data-remove="${x.id}">Нест кардан</button>
-  </div>`).join('');
- }
-
+ if(!cart.length)$('cartItems').textContent='Сабад холӣ аст.';
+ else $('cartItems').innerHTML=cart.map(x=>`<div class="item"><strong>${escapeHTML(x.name)}</strong><p>${money(x.price)} × ${x.qty} = ${money(x.price*x.qty)} сомонӣ</p><button type="button" class="secondary" data-minus="${x.id}">−</button> <button type="button" class="secondary" data-plus="${x.id}">+</button> <button type="button" class="danger" data-remove="${x.id}">Нест кардан</button></div>`).join('');
  $('total').textContent=money(cart.reduce((s,x)=>s+x.price*x.qty,0));
-
- $('cartItems').querySelectorAll('[data-minus]').forEach(b=>
- b.onclick=()=>changeQty(Number(b.dataset.minus),-1));
-
- $('cartItems').querySelectorAll('[data-plus]').forEach(b=>
- b.onclick=()=>changeQty(Number(b.dataset.plus),1));
-
- $('cartItems').querySelectorAll('[data-remove]').forEach(b=>
- b.onclick=()=>{
-  cart=cart.filter(x=>x.id!==Number(b.dataset.remove));
-  renderCart();
- });
+ $('cartItems').querySelectorAll('[data-minus]').forEach(b=>b.onclick=()=>changeQty(Number(b.dataset.minus),-1));
+ $('cartItems').querySelectorAll('[data-plus]').forEach(b=>b.onclick=()=>changeQty(Number(b.dataset.plus),1));
+ $('cartItems').querySelectorAll('[data-remove]').forEach(b=>b.onclick=()=>{cart=cart.filter(x=>x.id!==Number(b.dataset.remove));renderCart();});
 }
-
-function changeQty(id,amount){
- const x=cart.find(i=>i.id===id);
- if(!x)return;
-
- if(amount>0&&x.qty>=x.stock){
-  alert('Аз миқдори анбор зиёд интихоб карда намешавад.');
-  return;
- }
-
- x.qty+=amount;
- if(x.qty<=0)cart=cart.filter(i=>i.id!==id);
- renderCart();
-}
-
-// Фиристодани фармоиш ба базаи Supabase
+function changeQty(id,amount){const x=cart.find(i=>i.id===id);if(!x)return;if(amount>0&&x.qty>=x.stock){alert('Аз миқдори анбор зиёд интихоб карда намешавад.');return;}x.qty+=amount;if(x.qty<=0)cart=cart.filter(i=>i.id!==id);renderCart();}
 $('orderForm').addEventListener('submit',async e=>{
- e.preventDefault();
- showMessage('orderMessage','');
-
- if(!cart.length){
-  showMessage('orderMessage','Сабад холӣ аст.',true);
-  return;
- }
-
- const name=$('customerName').value.trim();
- const phone=$('customerPhone').value.trim();
- const address=$('address').value.trim();
-
- if(!name||!phone||!address){
-  showMessage('orderMessage','Лутфан ном, телефон ва суроғаро пур кунед.',true);
-  return;
- }
-
+ e.preventDefault();showMessage('orderMessage','');if(!cart.length){showMessage('orderMessage','Сабад холӣ аст.',true);return;}
+ const name=$('customerName').value.trim(),phone=$('customerPhone').value.trim(),address=$('address').value.trim();
+ if(!name||!phone||!address){showMessage('orderMessage','Лутфан ном, телефон ва суроғаро пур кунед.',true);return;}
  const items=cart.map(x=>({product_id:Number(x.id),quantity:Number(x.qty)}));
  const whatsappItems=cart.map(x=>({name:x.name,price:Number(x.price),quantity:Number(x.qty)}));
-
- $('orderButton').disabled=true;
- $('orderButton').textContent='Сабт шуда истодааст...';
-
+ $('orderButton').disabled=true;$('orderButton').textContent='Сабт шуда истодааст...';
  try{
-  const {data,error}=await db.rpc('place_order',{
-   p_customer_name:name,
-   p_customer_phone:phone,
-   p_address:address,
-   p_items:items
-  });
-
-  if(error){
-   console.error('Order RPC error:',error);
-   showMessage('orderMessage',error.message||'Фармоиш сабт нашуд. Танзимоти RPC-и Supabase-ро санҷед.',true);
-   return;
-  }
-
-  if(!data||data.success!==true){
-   showMessage('orderMessage','Фармоиш сабт нашуд. Лутфан боз кӯшиш кунед.',true);
-   return;
-  }
-
-  const total=Number(data.total);
-  const lines=whatsappItems.map(x=>`• ${x.name} — ${x.quantity} × ${x.price} сомонӣ`).join('\n');
-
-  const whatsappText=`Фармоиши нав аз MASTCHOH.STORE
-Рақами фармоиш: ${data.order_id}
-Ном: ${name}
-Телефон: ${phone}
-Суроға: ${address}
-
-${lines}
-Ҳамагӣ аз база: ${total} сомонӣ`;
-
+  const {data,error}=await db.rpc('place_order',{p_customer_name:name,p_customer_phone:phone,p_address:address,p_items:items});
+  if(error){console.error(error);showMessage('orderMessage',error.message||'Фармоиш сабт нашуд. Танзимоти RPC-и Supabase-ро санҷед.',true);return;}
+  if(!data||data.success!==true){showMessage('orderMessage','Фармоиш сабт нашуд. Лутфан боз кӯшиш кунед.',true);return;}
+  const total=Number(data.total),lines=whatsappItems.map(x=>`• ${x.name} — ${x.quantity} × ${x.price} сомонӣ`).join('\n');
+  const whatsappText=`Фармоиши нав аз MASTCHOH.STORE\nРақами фармоиш: ${data.order_id}\nНом: ${name}\nТелефон: ${phone}\nСуроға: ${address}\n\n${lines}\nҲамагӣ аз база: ${total} сомонӣ`;
   $('orderMessage').innerHTML='<div class="notice">Фармоиши №'+escapeHTML(data.order_id)+' қабул шуд. Ҳамагӣ: '+escapeHTML(money(total))+' сомонӣ.</div><button type="button" id="sendWhatsApp">Ирсол ба WhatsApp</button>';
-
-  $('sendWhatsApp').onclick=()=>window.open(
-   'https://wa.me/'+WHATSAPP_NUMBER+'?text='+encodeURIComponent(whatsappText),
-   '_blank','noopener'
-  );
-
-  cart=[];
-  renderCart();
-  $('orderForm').reset();
-  await loadProducts();
-
- }catch(err){
-  console.error('Order error:',err);
-  showMessage('orderMessage','Хатои пайвастшавӣ. Интернетро санҷида, боз кӯшиш кунед.',true);
- }finally{
-  $('orderButton').disabled=false;
-  $('orderButton').textContent='Фиристодани фармоиш';
- }
+  $('sendWhatsApp').onclick=()=>window.open('https://wa.me/'+WHATSAPP_NUMBER+'?text='+encodeURIComponent(whatsappText),'_blank','noopener');
+  cart=[];renderCart();$('orderForm').reset();await loadProducts();
+ }catch(err){console.error(err);showMessage('orderMessage','Хатои пайвастшавӣ. Интернетро санҷида, боз кӯшиш кунед.',true);}
+ finally{$('orderButton').disabled=false;$('orderButton').textContent='Фиристодани фармоиш';}
 });
-
 $('toggleLogin').onclick=()=>$('loginPanel').classList.toggle('hidden');
-
 async function updateAuth(){
- if(!user){
-  $('adminPanel').classList.add('hidden');
-  return;
- }
-
- const {data,error}=await db.from('store_admins')
- .select('user_id').eq('user_id',user.id).maybeSingle();
-
- if(error||!data){
-  await db.auth.signOut();
-  user=null;
-  $('adminPanel').classList.add('hidden');
-  $('loginPanel').classList.remove('hidden');
-  showMessage('loginMessage','Ин ҳисоби администратор нест. UID-ро дар store_admins санҷед.',true);
-  return;
- }
-
- $('loginPanel').classList.add('hidden');
- $('adminPanel').classList.remove('hidden');
- $('adminEmailLabel').textContent=user.email||'Администратор';
- await loadAdminProducts();
- await loadOrders();
+ if(!user){$('adminPanel').classList.add('hidden');return;}
+ const {data,error}=await db.from('store_admins').select('user_id').eq('user_id',user.id).maybeSingle();
+ if(error||!data){await db.auth.signOut();user=null;$('adminPanel').classList.add('hidden');$('loginPanel').classList.remove('hidden');showMessage('loginMessage','Ин ҳисоби администратор нест. UID-ро дар store_admins санҷед.',true);return;}
+ $('loginPanel').classList.add('hidden');$('adminPanel').classList.remove('hidden');$('adminEmailLabel').textContent=user.email||'Администратор';await loadAdminProducts();await loadOrders();
 }
-
-$('loginForm').addEventListener('submit',async e=>{
- e.preventDefault();
- showMessage('loginMessage','');
-
- const {data,error}=await db.auth.signInWithPassword({
-  email:$('adminEmail').value.trim(),
-  password:$('adminPassword').value
- });
-
- if(error){
-  console.error(error);
-  showMessage('loginMessage','Ворид нашуд. Email ва паролро санҷед.',true);
-  return;
- }
-
- user=data.user;
- await updateAuth();
-});
-
-$('logout').onclick=async()=>{
- await db.auth.signOut();
- user=null;
- $('adminPanel').classList.add('hidden');
- $('loginPanel').classList.remove('hidden');
-};
-
+$('loginForm').addEventListener('submit',async e=>{e.preventDefault();showMessage('loginMessage','');const {data,error}=await db.auth.signInWithPassword({email:$('adminEmail').value.trim(),password:$('adminPassword').value});if(error){console.error(error);showMessage('loginMessage','Ворид нашуд. Email ва паролро санҷед.',true);return;}user=data.user;await updateAuth();});
+$('logout').onclick=async()=>{await db.auth.signOut();user=null;$('adminPanel').classList.add('hidden');$('loginPanel').classList.remove('hidden');};
 async function loadAdminProducts(){
- const {data,error}=await db.from('products')
- .select('*').order('created_at',{ascending:false});
-
- if(error){
-  $('adminProducts').textContent='Молҳоро хонда натавонист.';
-  console.error(error);
-  return;
- }
-
- if(!data||!data.length){
-  $('adminProducts').textContent='Ҳоло мол нест.';
-  return;
- }
-
- $('adminProducts').innerHTML=data.map(p=>`
- <div class="adminitem">
- <strong>${escapeHTML(p.name)}</strong>
- <p>${money(p.price)} сомонӣ · Миқдор: ${Number(p.stock||0)} · ${p.is_active?'Фаъол':'Ғайрифаъол'}</p>
- <button type="button" class="secondary" data-edit="${p.id}">Таҳрир</button>
- <button type="button" class="danger" data-delete="${p.id}">Нест кардан</button>
- </div>`).join('');
-
- $('adminProducts').querySelectorAll('[data-edit]').forEach(b=>
- b.onclick=()=>editProduct(data.find(p=>String(p.id)===b.dataset.edit)));
-
- $('adminProducts').querySelectorAll('[data-delete]').forEach(b=>
- b.onclick=()=>deleteProduct(Number(b.dataset.delete)));
+ const {data,error}=await db.from('products').select('*').order('created_at',{ascending:false});
+ if(error){$('adminProducts').textContent='Молҳоро хонда натавонист.';console.error(error);return;}
+ if(!data||!data.length){$('adminProducts').textContent='Ҳоло мол нест.';return;}
+ $('adminProducts').innerHTML=data.map(p=>`<div class="adminitem"><strong>${escapeHTML(p.name)}</strong><p>${money(p.price)} сомонӣ · Миқдор: ${Number(p.stock||0)} · ${p.is_active?'Фаъол':'Ғайрифаъол'} · Аксҳо: ${getImages(p).length}</p><button type="button" class="secondary" data-edit="${p.id}">Таҳрир</button> <button type="button" class="danger" data-delete="${p.id}">Нест кардан</button></div>`).join('');
+ $('adminProducts').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>editProduct(data.find(p=>String(p.id)===b.dataset.edit)));
+ $('adminProducts').querySelectorAll('[data-delete]').forEach(b=>b.onclick=()=>deleteProduct(Number(b.dataset.delete)));
 }
-
+function renderSelectedPreview(){
+ const urls=[...existingImages,...selectedFiles.map(f=>URL.createObjectURL(f))];
+ $('selectedPreview').innerHTML=urls.map((u,i)=>`<img src="${escapeHTML(u)}" alt="Акси ${i+1}" title="Акси ${i+1}">`).join('');
+}
 function editProduct(p){
  if(!p)return;
-
- $('productId').value=p.id;
- $('productName').value=p.name||'';
- $('productPrice').value=p.price??0;
- $('productCategory').value=p.category||'';
- $('productStock').value=p.stock??0;
- $('productImage').value=p.image_url||'';
- $('productImageFile').value='';
- $('imagePreview').classList.add('hidden');
- $('imagePreview').removeAttribute('src');
- $('productDescription').value=p.description||'';
- $('productForm').scrollIntoView({behavior:'smooth'});
+ $('productId').value=p.id;$('productName').value=p.name||'';$('productPrice').value=p.price??0;$('productCategory').value=p.category||'';$('productStock').value=p.stock??0;
+ existingImages=getImages(p);selectedFiles=[];$('productImageFile').value='';$('productImage').value=p.image_url||existingImages[0]||'';$('productDescription').value=p.description||'';renderSelectedPreview();$('productForm').scrollIntoView({behavior:'smooth'});
 }
-
-// Интихоби сурат аз Галерея ва пешнамоиш
 $('productImageFile').addEventListener('change',()=>{
- const file=$('productImageFile').files[0];
- const preview=$('imagePreview');
-
- if(!file){
-  preview.classList.add('hidden');
-  preview.removeAttribute('src');
-  return;
- }
-
- if(!file.type.startsWith('image/')){
-  alert('Лутфан файли суратро интихоб кун.');
-  $('productImageFile').value='';
-  preview.classList.add('hidden');
-  preview.removeAttribute('src');
-  return;
- }
-
- if(file.size>5*1024*1024){
-  alert('Ҳаҷми сурат бояд аз 5 MB зиёд набошад.');
-  $('productImageFile').value='';
-  preview.classList.add('hidden');
-  preview.removeAttribute('src');
-  return;
- }
-
- if(preview.dataset.objectUrl)URL.revokeObjectURL(preview.dataset.objectUrl);
-
- const objectUrl=URL.createObjectURL(file);
- preview.dataset.objectUrl=objectUrl;
- preview.src=objectUrl;
- preview.classList.remove('hidden');
+ const files=[...$('productImageFile').files];
+ if(files.some(f=>!f.type.startsWith('image/')||f.size>5*1024*1024)){alert('Ҳар файл бояд сурат ва ҳаҷмаш то 5 MB бошад.');$('productImageFile').value='';return;}
+ if(existingImages.length+selectedFiles.length+files.length>15){alert('Барои як мол ҳадди аксар 15 акс мумкин аст.');$('productImageFile').value='';return;}
+ selectedFiles=[...selectedFiles,...files];$('productImageFile').value='';renderSelectedPreview();
 });
-
-$('clearForm').onclick=()=>{
- $('productForm').reset();
- $('productId').value='';
- $('productStock').value=1;
- $('imagePreview').classList.add('hidden');
- $('imagePreview').removeAttribute('src');
- showMessage('productMessage','');
-};
-
-// Илова ва таҳрири мол, бо бор кардани сурат ба Supabase Storage
+$('clearSelectedImages').onclick=()=>{existingImages=[];selectedFiles=[];$('productImage').value='';renderSelectedPreview();};
+$('clearForm').onclick=()=>{$('productForm').reset();$('productId').value='';$('productStock').value=1;selectedFiles=[];existingImages=[];$('selectedPreview').innerHTML='';showMessage('productMessage','');};
 $('productForm').addEventListener('submit',async e=>{
- e.preventDefault();
- showMessage('productMessage','');
-
- const name=$('productName').value.trim();
- const price=Number($('productPrice').value);
- const stock=Number($('productStock').value);
-
- if(!name||!Number.isFinite(price)||price<0||!Number.isInteger(stock)||stock<0){
-  showMessage('productMessage','Ном, нарх ва миқдорро санҷед.',true);
-  return;
- }
-
- const file=$('productImageFile').files[0];
- let imageUrl=$('productImage').value.trim()||null;
-
- if(file){
-  if(!file.type.startsWith('image/')||file.size>5*1024*1024){
-   showMessage('productMessage','Сурат бояд бошад ва ҳаҷмаш аз 5 MB зиёд набошад.',true);
-   return;
-  }
-
-  showMessage('productMessage','Сурат бор шуда истодааст...');
-
-  const ext=(file.name.split('.').pop()||'jpg')
-  .toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
-
-  const path=Date.now()+'-'+Math.random().toString(36).slice(2)+'.'+ext;
-
-  const {error:uploadError}=await db.storage.from('product-images')
-  .upload(path,file,{
-   cacheControl:'3600',
-   upsert:false,
-   contentType:file.type
-  });
-
-  if(uploadError){
-   console.error('Image upload error:',uploadError);
-   showMessage('productMessage','Сурат бор нашуд. Bucket ва иҷозатҳои Storage-ро санҷед.',true);
-   return;
-  }
-
-  const {data:urlData}=db.storage.from('product-images').getPublicUrl(path);
-  imageUrl=urlData?.publicUrl||null;
-
-  if(!imageUrl){
-   showMessage('productMessage','Суроғаи сурат гирифта нашуд.',true);
-   return;
-  }
- }
-
- const row={
-  name,
-  price,
-  stock,
-  category:$('productCategory').value.trim()||null,
-  image_url:imageUrl,
-  description:$('productDescription').value.trim()||null,
-  is_active:true
- };
-
- const id=$('productId').value;
-
- const result=id
- ?await db.from('products').update(row).eq('id',Number(id))
- :await db.from('products').insert(row);
-
- if(result.error){
-  console.error(result.error);
-  showMessage('productMessage','Мол сабт нашуд. Иҷозатҳои администраторро санҷед.',true);
-  return;
- }
-
- $('productForm').reset();
- $('productId').value='';
- $('productStock').value=1;
- $('imagePreview').classList.add('hidden');
- $('imagePreview').removeAttribute('src');
- showMessage('productMessage','Мол сабт шуд.');
- await loadProducts();
- await loadAdminProducts();
-});
-
-async function deleteProduct(id){
- if(!confirm('Ин молро нест мекунед?'))return;
-
- const {error}=await db.from('products').delete().eq('id',id);
-
- if(error){
-  console.error(error);
-  alert('Мол нест карда нашуд. Иҷозатҳоро санҷед.');
-  return;
- }
-
- cart=cart.filter(x=>x.id!==id);
- renderCart();
- await loadProducts();
- await loadAdminProducts();
-}
-
-async function loadOrders(){
- const {data,error}=await db.from('orders')
- .select('*').order('created_at',{ascending:false}).limit(100);
-
- if(error){
-  $('adminOrders').textContent='Фармоишҳоро хонда натавонист.';
-  console.error(error);
-  return;
- }
-
- if(!data||!data.length){
-  $('adminOrders').textContent='Ҳоло фармоиш нест.';
-  return;
- }
-
- $('adminOrders').innerHTML=data.map(o=>{
-  const lines=Array.isArray(o.items)
-  ?o.items.map(x=>`${x.name} × ${x.quantity}`).join(', ')
-  :'';
-
-  return `<div class="adminitem">
-  <strong>Фармоиш №${o.id}</strong>
-  <p>${escapeHTML(o.customer_name)} · ${escapeHTML(o.customer_phone)}</p>
-  <p>Суроға: ${escapeHTML(o.address)}</p>
-  <p>${escapeHTML(lines)}</p>
-  <p><strong>${money(o.total)} сомонӣ</strong></p>
-  <label for="status-${o.id}">Ҳолати фармоиш</label>
-  <select id="status-${o.id}" data-status="${o.id}">
-  <option value="new" ${o.status==='new'?'selected':''}>Нав</option>
-  <option value="confirmed" ${o.status==='confirmed'?'selected':''}>Тасдиқ шуд</option>
-  <option value="delivered" ${o.status==='delivered'?'selected':''}>Расонда шуд</option>
-  <option value="cancelled" ${o.status==='cancelled'?'selected':''}>Бекор шуд</option>
-  </select>
-  <button type="button" data-save-status="${o.id}">Сабти ҳолат</button>
-  </div>`;
- }).join('');
-
- $('adminOrders').querySelectorAll('[data-save-status]').forEach(b=>{
-  b.onclick=async()=>{
-   const id=Number(b.dataset.saveStatus);
-   const status=$('status-'+id).value;
-
-   const {error}=await db.from('orders').update({status}).eq('id',id);
-
-   if(error){
-    console.error(error);
-    alert('Ҳолат сабт нашуд. Policies ва иҷозатҳоро санҷед.');
-   }else{
-    await loadOrders();
-   }
-  };
- });
-}
-
-$('refreshOrders').onclick=loadOrders;
-
-async function start(){
+ e.preventDefault();showMessage('productMessage','');
+ const name=$('productName').value.trim(),price=Number($('productPrice').value),stock=Number($('productStock').value),id=$('productId').value;
+ if(!name||!Number.isFinite(price)||price<0||!Number.isInteger(stock)||stock<0){showMessage('productMessage','Ном, нарх ва миқдорро санҷед.',true);return;}
+ let imageUrls=[...existingImages];const typedUrl=$('productImage').value.trim();
+ if(typedUrl&&!imageUrls.length)imageUrls.push(typedUrl);
+ if(imageUrls.length+selectedFiles.length>15){showMessage('productMessage','Ҳадди аксар 15 акс иҷозат аст.',true);return;}
+ $('saveProductButton').disabled=true;$('saveProductButton').textContent='Сабт шуда истодааст...';
  try{
-  const {data,error}=await db.auth.getSession();
-  if(error)console.error(error);
-  user=data?.session?.user||null;
-  await updateAuth();
-  await loadProducts();
- }catch(err){
-  console.error(err);
-  $('catalogMessage').textContent='Пайвастшавӣ ноком шуд. Интернет ва танзимоти Supabase-ро санҷед.';
- }
+  for(let i=0;i<selectedFiles.length;i++){
+   const file=selectedFiles[i];showMessage('productMessage',`Бор кардани акс ${i+1} аз ${selectedFiles.length}...`);
+   const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+   const path=Date.now()+'-'+Math.random().toString(36).slice(2)+'.'+ext;
+   const {error:uploadError}=await db.storage.from('product-images').upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type});
+   if(uploadError)throw uploadError;
+   const {data:urlData}=db.storage.from('product-images').getPublicUrl(path);if(urlData?.publicUrl)imageUrls.push(urlData.publicUrl);
+  }
+  imageUrls=[...new Set(imageUrls)].slice(0,15);
+  const row={name,price,stock,category:$('productCategory').value.trim()||null,image_urls:imageUrls,image_url:imageUrls[0]||null,description:$('productDescription').value.trim()||null,is_active:true};
+  const result=id?await db.from('products').update(row).eq('id',Number(id)):await db.from('products').insert(row);
+  if(result.error)throw result.error;
+  $('productForm').reset();$('productId').value='';$('productStock').value=1;selectedFiles=[];existingImages=[];$('selectedPreview').innerHTML='';
+  showMessage('productMessage','Мол сабт шуд.');await loadProducts();await loadAdminProducts();
+ }catch(err){console.error(err);showMessage('productMessage','Мол ё аксҳо сабт нашуданд. Bucket, SQL ва иҷозатҳои Supabase-ро санҷед. Тафсилот дар Console ҳаст.',true);}
+ finally{$('saveProductButton').disabled=false;$('saveProductButton').textContent='Сабт кардани мол';}
+});
+async function deleteProduct(id){if(!confirm('Ин молро нест мекунед?'))return;const {error}=await db.from('products').delete().eq('id',id);if(error){console.error(error);alert('Мол нест карда нашуд. Иҷозатҳоро санҷед.');return;}cart=cart.filter(x=>Number(x.id)!==id);renderCart();await loadProducts();await loadAdminProducts();}
+async function loadOrders(){
+ const {data,error}=await db.from('orders').select('*').order('created_at',{ascending:false}).limit(100);
+ if(error){$('adminOrders').textContent='Фармоишҳоро хонда натавонист.';console.error(error);return;}
+ if(!data||!data.length){$('adminOrders').textContent='Ҳоло фармоиш нест.';return;}
+ $('adminOrders').innerHTML=data.map(o=>{
+ const lines=Array.isArray(o.items)?o.items.map(x=>`${x.name} × ${x.quantity}`).join(', '):'';
+ return `<div class="adminitem"><strong>Фармоиш №${escapeHTML(o.id)}</strong><p>${escapeHTML(o.customer_name)} · ${escapeHTML(o.customer_phone)}</p><p>Суроға: ${escapeHTML(o.address)}</p><p>${escapeHTML(lines)}</p><p><strong>${money(o.total)} сомонӣ</strong></p><label for="status-${o.id}">Ҳолати фармоиш</label><select id="status-${o.id}" data-status="${o.id}"><option value="new" ${o.status==='new'?'selected':''}>Нав</option><option value="confirmed" ${o.status==='confirmed'?'selected':''}>Тасдиқ шуд</option><option value="delivered" ${o.status==='delivered'?'selected':''}>Расонда шуд</option><option value="cancelled" ${o.status==='cancelled'?'selected':''}>Бекор шуд</option></select><button type="button" data-save-status="${o.id}">Сабти ҳолат</button></div>`;
+ }).join('');
+ $('adminOrders').querySelectorAll('[data-save-status]').forEach(b=>b.onclick=async()=>{const id=Number(b.dataset.saveStatus),status=$('status-'+id).value;const {error}=await db.from('orders').update({status}).eq('id',id);if(error){console.error(error);alert('Ҳолат сабт нашуд. Policies ва иҷозатҳоро санҷед.');}else await loadOrders();});
 }
-
+$('refreshOrders').onclick=loadOrders;
+function openViewer(images,index,name){viewerImages=images||[];if(!viewerImages.length)return;viewerIndex=Math.max(0,Math.min(index,viewerImages.length-1));$('largeProductImage').alt=name||'Акси мол';showViewerImage();$('imageViewer').classList.add('open');document.body.style.overflow='hidden';}
+function showViewerImage(){$('largeProductImage').src=viewerImages[viewerIndex];$('viewerCounter').textContent=`${viewerIndex+1} / ${viewerImages.length}`;$('prevViewer').style.display=viewerImages.length>1?'block':'none';$('nextViewer').style.display=viewerImages.length>1?'block':'none';}
+function moveViewer(n){if(!viewerImages.length)return;viewerIndex=(viewerIndex+n+viewerImages.length)%viewerImages.length;showViewerImage();}
+function closeViewer(){$('imageViewer').classList.remove('open');$('largeProductImage').src='';document.body.style.overflow='';viewerImages=[];}
+$('prevViewer').onclick=()=>moveViewer(-1);$('nextViewer').onclick=()=>moveViewer(1);$('closeViewer').onclick=closeViewer;
+$('imageViewer').addEventListener('click',e=>{if(e.target===$('imageViewer'))closeViewer();});
+document.addEventListener('keydown',e=>{if(!$('imageViewer').classList.contains('open'))return;if(e.key==='Escape')closeViewer();if(e.key==='ArrowLeft')moveViewer(-1);if(e.key==='ArrowRight')moveViewer(1);});
+let touchStartX=0;
+$('imageViewer').addEventListener('touchstart',e=>{touchStartX=e.changedTouches[0].screenX;},{passive:true});
+$('imageViewer').addEventListener('touchend',e=>{const dx=e.changedTouches[0].screenX-touchStartX;if(Math.abs(dx)>50)moveViewer(dx<0?1:-1);},{passive:true});
+async function start(){try{const {data,error}=await db.auth.getSession();if(error)console.error(error);user=data?.session?.user||null;await updateAuth();await loadProducts();}catch(err){console.error(err);$('catalogMessage').textContent='Пайвастшавӣ ноком шуд. Интернет ва танзимоти Supabase-ро санҷед.';}}
 start();
 })();
 </script>

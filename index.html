@@ -29,18 +29,18 @@ footer{text-align:center;padding:25px 16px 90px;color:#84788f;font-size:12px}.bo
 @media(max-width:620px){#productLightbox{padding:60px 8px 20px}#productLightbox #lightboxImage{max-height:76vh}#productLightbox button{width:42px;height:42px}#productLightbox #lightboxPrev{left:8px}#productLightbox #lightboxNext{right:8px}}
 </style></head><body>
 <div class="topline">🚚 Фармоиш осон • Нархҳо бо сомонӣ • MASTCHOH.STORE</div>
-<header class="site-header"><div class="brand-row"><div class="brand"><div class="brand-mark">M</div><div><h1>MASTCHOH.STORE</h1><p>Мағозаи онлайни ту — харид осон!</p></div></div><div class="header-actions"><button class="head-btn" type="button" onclick="document.getElementById('checkout').scrollIntoView({behavior:'smooth'})">🛒 Сабад</button><button class="head-btn" type="button" onclick="document.getElementById('loginPanel').classList.remove('hidden');document.getElementById('loginPanel').scrollIntoView({behavior:'smooth'})">👤 Маъмур</button></div></div><div class="search-wrap"><span class="search-icon">⌕</span><input id="search" placeholder="Молро ҷустуҷӯ кунед..." aria-label="Ҷустуҷӯи мол"></div></header>
+<header class="site-header"><div class="brand-row"><div class="brand"><div class="brand-mark">M</div><div><h1>MASTCHOH.STORE</h1><p>Мағозаи онлайни ту — харид осон!</p></div></div><div class="header-actions"><button class="head-btn" type="button" onclick="document.getElementById('checkout').scrollIntoView({behavior:'smooth'})">🛒 Сабад</button><button id="adminButton" class="head-btn hidden" type="button" onclick="document.getElementById('loginPanel').classList.remove('hidden');document.getElementById('loginPanel').scrollIntoView({behavior:'smooth'})">👤 Маъмур</button></div></div><div class="search-wrap"><span class="search-icon">⌕</span><input id="search" placeholder="Молро ҷустуҷӯ кунед..." aria-label="Ҷустуҷӯи мол"></div></header>
 <main>
 <section class="hero"><div class="hero-copy"><span class="eyebrow">ХАРИДИ ОСОН ДАР ЯК ҶО</span><h2>Ҳар чизе, ки лозим аст,<br>дар MASTCHOH.STORE</h2><p>Молҳои гуногунро интихоб кунед, ба сабад гузоред ва фармоиш диҳед.</p></div><div class="hero-art" aria-hidden="true">🛍️</div></section>
 <div class="section-heading"><div><h2>Категорияҳо</h2><p>Молҳоро аз рӯйи гурӯҳ интихоб кунед</p></div><span class="pill">МАГАЗИН</span></div>
 <div class="categories" id="categories"></div><div class="section-heading"><div><h2>Молҳои мағоза</h2><p>Нархҳо бо сомонӣ</p></div></div><p id="catalogMessage" class="notice">Каталог бор шуда истодааст...</p><section id="products" class="grid"></section>
 <section class="panel" id="checkout"><h2>🛒 Сабади харид</h2><div id="cartItems">Сабад холӣ аст.</div><div class="cart-total">Ҳамагӣ: <span id="total">0</span> сомонӣ</div>
 <form id="orderForm"><label for="customerName">Ному насаб *</label><input id="customerName" required maxlength="100" autocomplete="name"><label for="customerPhone">Рақами телефон *</label><input id="customerPhone" required maxlength="30" placeholder="+992..." autocomplete="tel"><label for="address">Суроға *</label><textarea id="address" required maxlength="500" autocomplete="street-address"></textarea><button type="submit" id="orderButton">Фиристодани фармоиш</button></form><div id="orderMessage" aria-live="polite"></div></section>
-<section class="panel"><div class="row"><h2>⚙️ Идоракунии мағоза</h2><button id="toggleLogin" class="secondary" type="button">Кушодан / пӯшидан</button></div>
+<section class="panel hidden" id="adminSection"><div class="row"><h2>⚙️ Идоракунии мағоза</h2><button id="toggleLogin" class="secondary" type="button">Кушодан / пӯшидан</button></div>
 <div id="loginPanel" class="hidden"><p class="muted">Бо email ва пароли ҳисоби администратори Supabase ворид шавед.</p><form id="loginForm"><label for="adminEmail">Email</label><input id="adminEmail" type="email" required autocomplete="username"><label for="adminPassword">Парол</label><input id="adminPassword" type="password" required autocomplete="current-password"><button type="submit">Ворид шудан</button></form><div id="loginMessage"></div></div>
 <div id="adminPanel" class="hidden"><div class="row"><p id="adminEmailLabel"></p><button id="logout" class="danger" type="button">Баромадан</button></div>
 <h3>Илова ё таҳрири мол</h3><form id="productForm"><input id="productId" type="hidden"><label for="productName">Номи мол *</label><input id="productName" required maxlength="150"><label for="productPrice">Нарх бо сомонӣ *</label><input id="productPrice" type="number" min="0" step="0.01" required><label for="productCategory">Категория</label><input id="productCategory" maxlength="80" placeholder="Электроника, либос..."><label for="productStock">Миқдор дар анбор</label><input id="productStock" type="number" min="0" step="1" value="1"><label for="productImage">10 то 15 акси молро аз галерея интихоб кунед</label><input id="productImage" type="file" accept="image/*" multiple><p class="muted">То 15 акс интихоб кунед. Ҳар акс то 5 МБ бошад. Барои иваз кардани аксҳои мол, аксҳои нав интихоб кунед.</p><div id="productImagePreview" style="display:flex;flex-wrap:wrap;gap:7px;margin:6px 0 12px"></div><label for="productDescription">Тавсифи мол</label><textarea id="productDescription" maxlength="2000"></textarea><button type="submit">Сабт кардани мол</button> <button type="button" class="secondary" id="clearForm">Тоза кардани форма</button></form><div id="productMessage"></div>
-<h3>Молҳои мағоза</h3><div id="adminProducts"></div><h3>Фармоишҳои харидорон</h3><button id="refreshOrders" class="secondary" type="button">Нав кардани рӯйхат</button><div id="adminOrders"></div></div></section></main><nav class="bottom-nav" aria-label="Менюи поён"><a href="#"><span>⌂</span><span>Асосӣ</span></a><a href="#categories"><span>▦</span><span>Категорияҳо</span></a><a href="#checkout"><span>🛒</span><span>Сабад</span></a><a href="#loginPanel" onclick="document.getElementById('loginPanel').classList.remove('hidden')"><span>👤</span><span>Маъмур</span></a></nav><footer>© <span id="year"></span> MASTCHOH.STORE · Харид осон, боэътимод ва қулай</footer>
+<h3>Молҳои мағоза</h3><div id="adminProducts"></div><h3>Фармоишҳои харидорон</h3><button id="refreshOrders" class="secondary" type="button">Нав кардани рӯйхат</button><div id="adminOrders"></div></div></section></main><nav class="bottom-nav" aria-label="Менюи поён"><a href="#"><span>⌂</span><span>Асосӣ</span></a><a href="#categories"><span>▦</span><span>Категорияҳо</span></a><a href="#checkout"><span>🛒</span><span>Сабад</span></a><a id="adminNav" class="hidden" href="#loginPanel" onclick="document.getElementById('loginPanel').classList.remove('hidden')"><span>👤</span><span>Маъмур</span></a></nav><footer>© <span id="year"></span> MASTCHOH.STORE · Харид осон, боэътимод ва қулай</footer>
 <div id="productLightbox" role="dialog" aria-modal="true" aria-label="Аксҳои мол" aria-hidden="true">
   <button type="button" id="lightboxClose" aria-label="Пӯшидан">×</button>
   <button type="button" id="lightboxPrev" aria-label="Акси пешина">‹</button>
@@ -57,6 +57,19 @@ const SUPABASE_KEY='sb_publishable_IXrEmPBVU9esqWumh9Q2bw_u7NCiHOR';
 const WHATSAPP_NUMBER='79964468762'; // Рақамро бо рамзи кишвар, бе + ва фосила санҷед.
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=id=>document.getElementById(id);let products=[],cart=[],category='Ҳама',user=null;
+// Қисми маъмурӣ танҳо бо суроғаи махсус кушода мешавад: ?admin=1
+// Ин пинҳонкунӣ танҳо барои намуди сайт аст; иҷозатҳои воқеӣ дар Supabase/RLS мебошанд.
+const adminMode = new URLSearchParams(window.location.search).get('admin') === '1';
+if (adminMode) {
+  $('adminSection').classList.remove('hidden');
+  $('adminButton').classList.remove('hidden');
+  $('adminNav').classList.remove('hidden');
+} else {
+  $('adminSection').classList.add('hidden');
+  $('adminButton').classList.add('hidden');
+  $('adminNav').classList.add('hidden');
+}
+
 
 // Галереяи пурраэкран: ламс ба акс, гузариш байни аксҳо ва пӯшидан.
 const lightbox=$('productLightbox');

@@ -37,9 +37,44 @@ function addToCart(id){const p=products.find(x=>Number(x.id)===id);if(!p||Number
 function renderCart(){if(!cart.length)$('cartItems').textContent='Сабад холӣ аст.';else $('cartItems').innerHTML=cart.map(x=>`<div class="item"><strong>${esc(x.name)}</strong><p>${money(x.price)} × ${x.qty} = ${money(x.price*x.qty)} сомонӣ</p><button class="secondary" data-minus="${x.id}">−</button> <button class="secondary" data-plus="${x.id}">+</button> <button class="danger" data-remove="${x.id}">Нест кардан</button></div>`).join('');$('total').textContent=money(cart.reduce((s,x)=>s+x.price*x.qty,0));$('cartItems').querySelectorAll('[data-minus]').forEach(b=>b.onclick=()=>qty(Number(b.dataset.minus),-1));$('cartItems').querySelectorAll('[data-plus]').forEach(b=>b.onclick=()=>qty(Number(b.dataset.plus),1));$('cartItems').querySelectorAll('[data-remove]').forEach(b=>b.onclick=()=>{cart=cart.filter(x=>x.id!==Number(b.dataset.remove));renderCart();});}
 function qty(id,n){const x=cart.find(a=>a.id===id);if(!x)return;if(n>0&&x.qty>=x.stock){alert('Аз миқдори анбор зиёд интихоб карда намешавад.');return;}x.qty+=n;if(x.qty<=0)cart=cart.filter(a=>a.id!==id);renderCart();}
 $('orderForm').addEventListener('submit',async e=>{e.preventDefault();message('orderMessage','');if(!cart.length){message('orderMessage','Сабад холӣ аст.',true);return;}const name=$('customerName').value.trim(),phone=$('customerPhone').value.trim(),address=$('address').value.trim();if(!name||!phone||!address){message('orderMessage','Ном, телефон ва суроғаро пур кунед.',true);return;}const items=cart.map(x=>({product_id:x.id,quantity:x.qty}));const lines=cart.map(x=>`• ${x.name} — ${x.qty} × ${x.price} сомонӣ`).join('\n');$('orderButton').disabled=true;$('orderButton').textContent='Сабт шуда истодааст...';try{const {data,error}=await db.rpc('place_order',{p_customer_name:name,p_customer_phone:phone,p_address:address,p_items:items});if(error){console.error(error);message('orderMessage',error.message||'Фармоиш сабт нашуд.',true);return;}if(!data||data.success!==true){message('orderMessage','Фармоиш сабт нашуд. Боз кӯшиш кунед.',true);return;}const text=`Фармоиши нав аз MASTCHOH.STORE\nРақами фармоиш: ${data.order_id}\nНом: ${name}\nТелефон: ${phone}\nСуроға: ${address}\n\n${lines}\nҲамагӣ: ${money(data.total)} сомонӣ`;$('orderMessage').innerHTML=`<div class="notice">Фармоиши №${esc(data.order_id)} қабул шуд. Ҳамагӣ: ${esc(money(data.total))} сомонӣ.</div><button type="button" id="sendWhatsApp">Ирсол ба WhatsApp</button>`;$('sendWhatsApp').onclick=()=>window.open('https://wa.me/'+WHATSAPP_NUMBER+'?text='+encodeURIComponent(text),'_blank','noopener');cart=[];renderCart();$('orderForm').reset();await loadProducts();}catch(err){console.error(err);message('orderMessage','Хатои пайвастшавӣ. Интернетро санҷед.',true);}finally{$('orderButton').disabled=false;$('orderButton').textContent='Фиристодани фармоиш';}});
-async function updateAuth(){ $('adminPanel').classList.add('hidden');if(!user){$('loginPanel').classList.toggle('hidden',!adminMode);return;}const {data,error}=await db.from('store_admins').select('user_id').eq('user_id',user.id).maybeSingle();if(error||!data){await db.auth.signOut();user=null;$('adminPanel').classList.add('hidden');$('loginPanel').classList.toggle('hidden',!adminMode);message('loginMessage','Ин ҳисоб ҳуқуқи маъмур надорад. UID-ро дар store_admins санҷед.',true);return;}$('loginPanel').classList.add('hidden');$('adminSection').classList.remove('hidden');$('adminPanel').classList.remove('hidden');$('adminEmailLabel').textContent=user.email||'Администратор';await loadAdminProducts();await loadOrders();}
+async function updateAuth(){
+  // Муҳим: ҳатто агар дар браузер сессияи маъмурӣ боқӣ монда бошад,
+  // дар суроғаи оддии мағоза панели маъмурӣ набояд кушода шавад.
+  if(!adminMode){
+    $('adminSection').classList.add('hidden');
+    $('adminButton').classList.add('hidden');
+    $('loginPanel').classList.add('hidden');
+    $('adminPanel').classList.add('hidden');
+    return;
+  }
+
+  $('adminPanel').classList.add('hidden');
+  if(!user){
+    $('loginPanel').classList.remove('hidden');
+    return;
+  }
+
+  const {data,error}=await db.from('store_admins')
+    .select('user_id').eq('user_id',user.id).maybeSingle();
+
+  if(error||!data){
+    await db.auth.signOut();
+    user=null;
+    $('adminPanel').classList.add('hidden');
+    $('loginPanel').classList.remove('hidden');
+    message('loginMessage','Ин ҳисоб ҳуқуқи маъмур надорад. UID-ро дар store_admins санҷед.',true);
+    return;
+  }
+
+  $('loginPanel').classList.add('hidden');
+  $('adminSection').classList.remove('hidden');
+  $('adminPanel').classList.remove('hidden');
+  $('adminEmailLabel').textContent=user.email||'Администратор';
+  await loadAdminProducts();
+  await loadOrders();
+}
 $('loginForm').addEventListener('submit',async e=>{e.preventDefault();message('loginMessage','');const {data,error}=await db.auth.signInWithPassword({email:$('adminEmail').value.trim(),password:$('adminPassword').value});if(error){console.error(error);message('loginMessage','Ворид нашуд. Email ва паролро санҷед.',true);return;}user=data.user;await updateAuth();});
-$('logout').onclick=async()=>{await db.auth.signOut();user=null;$('adminPanel').classList.add('hidden');$('loginPanel').classList.toggle('hidden',!adminMode);};
+$('logout').onclick=async()=>{await db.auth.signOut();user=null;$('adminPanel').classList.add('hidden');$('loginPanel').classList.toggle('hidden',!adminMode);$('adminSection').classList.toggle('hidden',!adminMode);};
 async function loadAdminProducts(){const {data,error}=await db.from('products').select('*').order('created_at',{ascending:false});if(error){$('adminProducts').textContent='Молҳоро хонда натавонист.';console.error(error);return;}if(!data?.length){$('adminProducts').textContent='Ҳоло мол нест.';return;}$('adminProducts').innerHTML=data.map(p=>`<div class="adminitem"><strong>${esc(p.name)}</strong><p>${money(p.price)} сомонӣ · Миқдор: ${Number(p.stock||0)} · ${p.is_active?'Фаъол':'Ғайрифаъол'}</p><button class="secondary" data-edit="${esc(p.id)}">Таҳрир</button> <button class="danger" data-delete="${esc(p.id)}">Нест кардан</button></div>`).join('');$('adminProducts').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>editProduct(data.find(p=>String(p.id)===b.dataset.edit)));$('adminProducts').querySelectorAll('[data-delete]').forEach(b=>b.onclick=()=>deleteProduct(Number(b.dataset.delete)));}
 let currentImageUrls=[];
 $('productImage').addEventListener('change',()=>{const files=Array.from($('productImage').files||[]),preview=$('productImagePreview');preview.innerHTML='';if(files.length>15||files.some(f=>!f.type.startsWith('image/')||f.size>5*1024*1024)){message('productMessage','То 15 акс интихоб кунед; ҳар акс бояд то 5 МБ бошад.',true);$('productImage').value='';return;}files.forEach(f=>{const im=document.createElement('img');im.src=URL.createObjectURL(f);im.alt='Пешнамоиш';preview.appendChild(im);});message('productMessage',files.length?`${files.length} акс интихоб шуд.`:'');});

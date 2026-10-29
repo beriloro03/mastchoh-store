@@ -39,7 +39,7 @@ const SUPABASE_KEY='sb_publishable_IXrEmPBVU9esqWumh9Q2bw_u7NCiHOR';
 const WHATSAPP_NUMBER='79964468762';
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=id=>document.getElementById(id);let products=[],cart=[],category='Ҳама',user=null;
-const adminMode=new URLSearchParams(location.search).get('admin')==='1';
+const adminMode=false; // Саҳифаи оммавӣ: панели маъмур фаъол намешавад.
 $('adminSection').classList.toggle('hidden',!adminMode);$('adminButton').classList.toggle('hidden',!adminMode);$('loginPanel').classList.toggle('hidden',!adminMode);$('adminPanel').classList.add('hidden');$('year').textContent=new Date().getFullYear();
 const money=n=>Number(n||0).toLocaleString('tg-TJ',{maximumFractionDigits:2});
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}

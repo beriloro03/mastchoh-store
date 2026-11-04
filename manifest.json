@@ -1,0 +1,20 @@
+
+{
+  "name": "MASTCHOH.STORE",
+  "short_name": "MASTCHOH",
+  "description": "Мағозаи онлайни MASTCHOH.STORE",
+  "lang": "tg",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f7f5fb",
+  "theme_color": "#6326b8",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

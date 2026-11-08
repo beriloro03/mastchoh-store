@@ -1,8 +1,31 @@
-
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="110" fill="#6326b8"/>
-  <path d="M126 190h260l-20 220H146z" fill="#fff"/>
-  <path d="M190 190v-38a66 66 0 0 1 132 0v38" fill="none" stroke="#f5c542" stroke-width="24" stroke-linecap="round"/>
-  <path d="M190 260h132" stroke="#6326b8" stroke-width="18" stroke-linecap="round"/>
-  <text x="256" y="350" font-family="Arial,sans-serif" font-size="76" font-weight="bold" text-anchor="middle" fill="#6326b8">M</text>
+<defs>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ff3434"/><stop offset=".55" stop-color="#c90018"/><stop offset="1" stop-color="#650014"/></linearGradient>
+ <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#ffe7e7"/></linearGradient>
+ <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5"/></filter>
+</defs>
+<rect width="512" height="512" rx="76" fill="url(#bg)"/>
+<path d="M0 115Q180 15 512 75V0H0Z" fill="#fff" opacity=".08"/>
+<rect x="8" y="8" width="496" height="496" rx="68" fill="none" stroke="#ffb5b5" stroke-width="3" opacity=".65"/>
+<!-- shopping bag -->
+<path d="M116 112h280l-20 196H136z" fill="#650014" opacity=".35" filter="url(#shadow)"/>
+<path d="M118 108h276l-22 184H140z" fill="url(#shine)" stroke="#fff" stroke-width="3"/>
+<path d="M190 116V87a66 66 0 0 1 132 0v29" fill="none" stroke="#fff" stroke-width="17" stroke-linecap="round"/>
+<path d="M205 117V89a51 51 0 0 1 102 0v28" fill="none" stroke="#c90018" stroke-width="7" stroke-linecap="round"/>
+<text x="256" y="250" font-family="Arial,sans-serif" font-size="124" font-weight="900" text-anchor="middle" fill="#d0001b">M</text>
+<path d="M77 258Q255 327 437 214" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round"/>
+<path d="M84 271Q255 338 433 228" fill="none" stroke="#ffcf36" stroke-width="4" stroke-linecap="round"/>
+<!-- cart -->
+<path d="M365 236h22l16 57h70l17-42h-96" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="418" cy="310" r="8" fill="#fff"/><circle cx="466" cy="310" r="8" fill="#fff"/>
+<!-- title -->
+<text x="256" y="360" font-family="Arial,sans-serif" font-size="39" font-weight="900" text-anchor="middle" fill="#fff" letter-spacing="-1">MASTCHOH.<tspan fill="#ffdf32">STORE</tspan></text>
+<path d="M50 378h130M332 378h130" stroke="#ffdf32" stroke-width="4" stroke-linecap="round"/>
+<!-- Tajik flag -->
+<path d="M208 386h96v11h-96z" fill="#e31b23"/><path d="M208 397h96v11h-96z" fill="#fff"/><path d="M208 408h96v11h-96z" fill="#159447"/>
+<g fill="#e6aa20"><path d="M253 393l3-6 3 6-3 4z"/><circle cx="246" cy="391" r="2"/><circle cx="266" cy="391" r="2"/><circle cx="251" cy="387" r="2"/><circle cx="261" cy="387" r="2"/></g>
+<!-- tagline -->
+<rect x="52" y="430" width="408" height="58" rx="28" fill="#fff"/>
+<text x="256" y="454" font-family="Arial,sans-serif" font-size="17" font-weight="800" text-anchor="middle" fill="#b9001b">Интернет Магазини</text>
+<text x="256" y="476" font-family="Arial,sans-serif" font-size="19" font-weight="900" text-anchor="middle" fill="#b9001b">Тоҷикистон</text>
 </svg>

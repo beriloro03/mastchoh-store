@@ -842,10 +842,11 @@ is_active:true
 const id=$('productId').value;
 
 const result=id
-?await db.from('products').update(row).eq('id',Number(id))
-:await db.from('products').insert(row);
+?await db.from('products').update(row).eq('id',Number(id)).select('id').maybeSingle()
+:await db.from('products').insert(row).select('id').single();
 
 if(result.error)throw result.error;
+if(!result.data)throw new Error('Сабт иҷозат дода нашуд ё мол ёфт нашуд.');
 
 $('productForm').reset();
 $('productId').value='';
@@ -869,11 +870,11 @@ btn.disabled=false;
 async function deleteProduct(id){
 if(!confirm('Ин молро нест мекунед?'))return;
 
-const {error}=await db.from('products').delete().eq('id',id);
+const {data,error}=await db.from('products').delete().eq('id',id).select('id').maybeSingle();
 
-if(error){
+if(error||!data){
 console.error(error);
-alert('Мол нест карда нашуд. Иҷозатҳои RLS-ро санҷед.');
+alert('Мол нест карда нашуд. Иҷозатҳои RLS-ро санҷед ё молро аз нав санҷед.');
 return;
 }
 
@@ -927,13 +928,14 @@ b.onclick=async()=>{
 const id=Number(b.dataset.saveStatus);
 const status=$('status-'+id).value;
 
-const {error}=await db.from('orders')
+const {data,error}=await db.from('orders')
 .update({status})
-.eq('id',id);
+.eq('id',id)
+.select('id').maybeSingle();
 
-if(error){
+if(error||!data){
 console.error(error);
-alert('Ҳолат сабт нашуд. Policies-ро санҷед.');
+alert('Ҳолат сабт нашуд. Иҷозатҳои RLS-ро санҷед.');
 }else{
 await loadOrders();
 }

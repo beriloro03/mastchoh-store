@@ -4,6 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#6326b8">
+<meta name="description" content="Мағозаи онлайни MASTCHOH.STORE — харид аз Тоҷикистон">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="MASTCHOH">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./icon.svg">
 <title>MASTCHOH.STORE</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -965,6 +972,17 @@ $('catalogMessage').textContent='Пайвастшавӣ ноком шуд. Ин�
 start();
 
 })();
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./service-worker.js')
+      .catch(function (error) {
+        console.error('Service Worker registration failed:', error);
+      });
+  });
+}
 </script>
 </body>
   </html>

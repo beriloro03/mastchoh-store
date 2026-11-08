@@ -8,20 +8,16 @@
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#f7f5fb",
-  "theme_color": "#6326b8",
-  "categories": ["shopping"],
+  "background_color": "#fff5f5",
+  "theme_color": "#c90018",
+  "categories": [
+    "shopping"
+  ],
   "prefer_related_applications": false,
   "icons": [
     {
       "src": "./icon.svg",
       "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
-      "src": "./icon.svg",
-      "sizes": "192x192",
       "type": "image/svg+xml",
       "purpose": "any"
     },
